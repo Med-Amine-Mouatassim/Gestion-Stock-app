@@ -25,9 +25,8 @@ L'application repose sur trois fonctionnalités principales :
 
 ### 3. 🏷️ Gestion des emballages
 
-- Permettre au vendeur d'ajouter différents types d'emballages dans le système.
-- Associer les emballages aux produits concernés.
-- Faciliter la gestion des quantités selon les formats d'emballage.
+- Permettre au vendeur d'ajouter e d'ambillons dans le système.
+- Associer les ambillons aux produits concernés.
 - Simplifier le suivi du stock et les opérations de vente.
 
 ## 🎯 Objectifs du projet
