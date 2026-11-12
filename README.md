@@ -40,7 +40,14 @@ L'application repose sur trois fonctionnalités principales :
 
 ## 🛠️ Technologies utilisées
 
-À compléter selon les technologies réellement utilisées dans le projet.
+- **HTML5** : structure de l'interface utilisateur.
+- **CSS3** : conception et mise en forme de l'interface.
+- **JSON** : structuration et échange des données.
+- **Firebase** : services backend et gestion des données.
+- **NVIDIA** : technologies et outils liés à l'intelligence artificielle.
+- **API** : intégration de services externes.
+- **Google Gemini API** : intégration de capacités d'intelligence artificielle pour l'assistance pédagogique.
+- **Grok API** : intégration d'un modèle d'IA pour les fonctionnalités conversationnelles.
 
 ## 👨‍💻 Auteur
 
