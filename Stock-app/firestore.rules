@@ -1,0 +1,112 @@
+rules_version='2'
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function ambillonAccessPath() {
+      return /databases/$(database)/documents/ambillon_access/$(request.auth.uid);
+    }
+
+    function ambillonPath(ambillonId) {
+      return /databases/$(database)/documents/ambillons/$(ambillonId);
+    }
+
+    function isOwner(data) {
+      return isSignedIn() && data.ownerUid == request.auth.uid;
+    }
+
+    function hasAmbillonAccess() {
+      return isSignedIn() && exists(ambillonAccessPath());
+    }
+
+    function hasAmbillonAccessToOwner(ownerUid) {
+      return hasAmbillonAccess() &&
+        get(ambillonAccessPath()).data.ownerUid == ownerUid;
+    }
+
+    function hasAmbillonAccessToOrder(orderData) {
+      return hasAmbillonAccess() &&
+        get(ambillonAccessPath()).data.ownerUid == orderData.ownerUid &&
+        get(ambillonAccessPath()).data.ambillonId == orderData.ambillonId;
+    }
+
+    function isValidAmbillonBinding(ownerUid, ambillonId) {
+      return ownerUid is string &&
+        ambillonId is string &&
+        exists(ambillonPath(ambillonId)) &&
+        get(ambillonPath(ambillonId)).data.ownerUid == ownerUid;
+    }
+
+    match /ambillon_access/{uid} {
+      allow get, delete: if isSignedIn() && request.auth.uid == uid;
+      allow create, update: if isSignedIn() &&
+        request.auth.uid == uid &&
+        isValidAmbillonBinding(request.resource.data.ownerUid, request.resource.data.ambillonId);
+    }
+
+    match /produits/{docId} {
+      allow create: if isOwner(request.resource.data);
+      allow read: if isOwner(resource.data) ||
+        hasAmbillonAccessToOwner(resource.data.ownerUid);
+      allow delete: if isOwner(resource.data);
+      allow update: if isOwner(resource.data) &&
+        request.resource.data.ownerUid == resource.data.ownerUid;
+    }
+
+    match /ambillons/{docId} {
+      allow get: if resource == null ||
+        resource.data.id == docId ||
+        resource.data.idKey == docId;
+      allow list: if isOwner(resource.data);
+      allow create: if isOwner(request.resource.data) &&
+        request.resource.data.id == docId &&
+        request.resource.data.idKey == docId;
+      allow delete: if isOwner(resource.data);
+      allow update: if isOwner(resource.data) &&
+        request.resource.data.ownerUid == resource.data.ownerUid &&
+        request.resource.data.id == resource.data.id &&
+        request.resource.data.idKey == resource.data.idKey &&
+        resource.data.idKey == docId;
+    }
+
+    match /bons_commande/{docId} {
+      allow create: if isOwner(request.resource.data) ||
+        (hasAmbillonAccessToOwner(request.resource.data.ownerUid) &&
+          get(ambillonAccessPath()).data.ambillonId == request.resource.data.ambillonId);
+      allow read: if isOwner(resource.data) || hasAmbillonAccessToOrder(resource.data);
+      allow delete: if isOwner(resource.data);
+      allow update: if isOwner(resource.data) &&
+        request.resource.data.ownerUid == resource.data.ownerUid &&
+        request.resource.data.diff(resource.data).changedKeys()
+          .hasOnly(["status", "confirmedAt", "updatedAt"]);
+    }
+
+    match /bons_compteurs/{docId} {
+      allow get, list: if isSignedIn();
+      allow create, update: if isSignedIn();
+      allow delete: if false;
+    }
+
+    match /factures/{docId} {
+      allow create: if isOwner(request.resource.data);
+      allow get: if isSignedIn() &&
+        (resource == null || resource.data.ownerUid == request.auth.uid);
+      allow list, delete: if isOwner(resource.data);
+      allow update: if isOwner(resource.data) &&
+        request.resource.data.ownerUid == resource.data.ownerUid;
+    }
+
+    match /factures_compteurs/{docId} {
+      allow get, list: if isSignedIn();
+      allow create, update: if isSignedIn();
+      allow delete: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

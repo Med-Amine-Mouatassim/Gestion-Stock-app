@@ -1,0 +1,1803 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bons de commande recus</title>
+  <style>
+    :root {
+      --bg: #e8eaee;
+      --card: #f7f8fa;
+      --line: #d2d6dc;
+      --text: #2f3c50;
+      --muted: #637286;
+      --blue-700: #1e5bb8;
+      --blue-600: #2f67be;
+      --blue-900: #153f86;
+      --green-700: #148f5a;
+      --green-600: #1ea66a;
+      --danger: #ca3c3c;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: clamp(8px, 1.2vw, 18px) clamp(6px, 1.1vw, 12px) clamp(12px, 1.6vw, 24px);
+    }
+
+    .page {
+      max-width: 1160px;
+      margin: 0 auto;
+      background: var(--card);
+      border: 1px solid #cfd3da;
+      border-radius: 8px;
+      min-height: calc(100vh - 36px);
+      box-shadow: 0 2px 10px rgba(22, 38, 62, 0.08);
+      overflow: hidden;
+    }
+
+    .head {
+      background: linear-gradient(90deg, #1d58b2 0%, #2766be 100%);
+      color: #fff;
+      font-weight: 800;
+      text-align: center;
+      font-size: clamp(26px, 3.2vw, 46px);
+      padding: clamp(12px, 1.5vw, 16px) clamp(14px, 2vw, 20px);
+      line-height: 1.15;
+      letter-spacing: 0.3px;
+    }
+
+    .content {
+      padding: clamp(12px, 2vw, 18px) clamp(12px, 2.4vw, 28px) clamp(14px, 2.4vw, 26px);
+    }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+
+    .search-box {
+      flex: 1 1 360px;
+      min-height: clamp(42px, 4.8vw, 48px);
+      border: 2px solid #cfd5de;
+      border-radius: 10px;
+      background: #f4f6f9;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 14px;
+      min-width: 0;
+    }
+
+    .search-box input {
+      flex: 1;
+      border: none;
+      background: transparent;
+      outline: none;
+      font-size: clamp(16px, 1.6vw, 22px);
+      color: #4f5e72;
+      min-width: 0;
+    }
+
+    .search-icon {
+      font-size: clamp(20px, 2.4vw, 30px);
+      color: #9aa5b6;
+      line-height: 1;
+      user-select: none;
+    }
+
+    .toolbar-btn {
+      border: none;
+      border-radius: 8px;
+      min-height: clamp(42px, 4.8vw, 48px);
+      padding: 0 clamp(14px, 1.9vw, 24px);
+      font-size: clamp(15px, 1.5vw, 21px);
+      font-weight: 700;
+      color: #fff;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .command-btn {
+      background: linear-gradient(90deg, var(--blue-700), var(--blue-600));
+    }
+
+    .command-btn.active-filter {
+      background: linear-gradient(90deg, #14518d, #1d66af);
+      box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.28);
+    }
+
+    .ambillons-btn {
+      background: linear-gradient(90deg, #0f3f8f, var(--blue-900));
+    }
+
+    .toolbar-btn:hover {
+      filter: brightness(1.05);
+    }
+
+    .separator {
+      border: none;
+      border-top: 2px solid #d3d7de;
+      margin: 10px 0 24px;
+    }
+
+    .table-wrap {
+      border: 2px solid #d2d6dd;
+      border-radius: 6px;
+      background: #f9fafc;
+      overflow: auto;
+    }
+
+    .orders-table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 860px;
+    }
+
+    .orders-table thead th {
+      background: #d9dbe0;
+      color: #3b4553;
+      text-align: left;
+      font-size: clamp(16px, 1.9vw, 28px);
+      font-weight: 800;
+      padding: clamp(10px, 1.4vw, 13px) clamp(12px, 1.8vw, 24px);
+      border-bottom: 1px solid #cdd2da;
+      white-space: nowrap;
+    }
+
+    .orders-table tbody td {
+      font-size: clamp(15px, 1.8vw, 27px);
+      padding: clamp(10px, 1.5vw, 16px) clamp(12px, 1.8vw, 24px);
+      border-bottom: 1px solid #d5d9e0;
+      color: #323f53;
+      white-space: nowrap;
+    }
+
+    .orders-table tbody tr:nth-child(even) {
+      background: #f1f2f6;
+    }
+
+    .orders-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .bon-id {
+      font-weight: 800;
+      letter-spacing: 0.2px;
+    }
+
+    .client-name {
+      color: #1e58ae;
+      font-weight: 700;
+    }
+
+    .amount {
+      font-weight: 800;
+    }
+
+    .status-chip {
+      display: inline-block;
+      min-width: 110px;
+      text-align: center;
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    .status-chip.pending {
+      color: #7a4a0c;
+      background: #fde9c8;
+    }
+
+    .status-chip.confirmed {
+      color: #0f5a3a;
+      background: #d5f2e6;
+    }
+
+    .order-actions {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .confirm-row-btn {
+      border: none;
+      border-radius: 7px;
+      padding: 7px 12px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+      background: linear-gradient(90deg, #1b945f, #168252);
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .confirm-row-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .delete-row-btn {
+      border: none;
+      border-radius: 7px;
+      padding: 7px 12px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+      background: linear-gradient(90deg, #b84c2f, #ca3c3c);
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .delete-row-btn:hover {
+      filter: brightness(1.05);
+    }
+
+    .delete-row-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .details-btn {
+      border: none;
+      border-radius: 7px;
+      padding: clamp(8px, 1vw, 11px) clamp(12px, 1.5vw, 22px);
+      font-size: clamp(14px, 1.5vw, 23px);
+      font-weight: 700;
+      color: #fff;
+      background: linear-gradient(90deg, var(--green-700), var(--green-600));
+      cursor: pointer;
+      white-space: nowrap;
+      min-width: clamp(130px, 16vw, 220px);
+    }
+
+    .details-btn:hover {
+      filter: brightness(1.05);
+    }
+
+    .details-arrow {
+      margin-left: 10px;
+      font-size: clamp(16px, 1.8vw, 28px);
+      vertical-align: middle;
+    }
+
+    .foot {
+      margin-top: 14px;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .back-link {
+      color: #2f4f7e;
+      font-size: 16px;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .back-link:hover {
+      text-decoration: underline;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(13, 29, 53, 0.45);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 14px;
+      z-index: 80;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal {
+      width: min(780px, 100%);
+      background: #fff;
+      border-radius: 10px;
+      border: 1px solid #d4dce8;
+      box-shadow: 0 18px 38px rgba(18, 35, 59, 0.24);
+      max-height: min(88vh, 860px);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .modal-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 12px 14px;
+      border-bottom: 1px solid #e1e7f1;
+      background: #f6f9ff;
+    }
+
+    .modal-title {
+      margin: 0;
+      font-size: 20px;
+      color: #25406a;
+    }
+
+    .close-modal-btn {
+      border: 1px solid #cfd8e6;
+      background: #ffffff;
+      color: #355071;
+      border-radius: 6px;
+      padding: 5px 10px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .modal-body {
+      padding: 12px 14px 14px;
+      overflow: auto;
+    }
+
+    .ambillon-form {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      align-items: end;
+    }
+
+    .field {
+      display: grid;
+      gap: 5px;
+    }
+
+    .field label {
+      font-size: 13px;
+      color: #456185;
+      font-weight: 700;
+    }
+
+    .field input {
+      width: 100%;
+      border: 1px solid #d0d9e7;
+      border-radius: 7px;
+      padding: 9px 10px;
+      font-size: 14px;
+      color: #2e486c;
+      outline: none;
+      background: #fff;
+    }
+
+    .field input:focus {
+      border-color: #5f82b9;
+    }
+
+    .save-ambillon-btn {
+      border: none;
+      border-radius: 7px;
+      min-height: 39px;
+      background: linear-gradient(90deg, var(--blue-700), var(--blue-600));
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+      padding: 0 14px;
+      white-space: nowrap;
+    }
+
+    .save-ambillon-btn:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+    }
+
+    .ambillon-message {
+      min-height: 20px;
+      margin: 10px 0 8px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--muted);
+    }
+
+    .ambillon-message.error {
+      color: var(--danger);
+    }
+
+    .ambillon-message.success {
+      color: #1f8f60;
+    }
+
+    .ambillons-table-wrap {
+      border: 1px solid #d5dce8;
+      border-radius: 8px;
+      overflow: auto;
+      background: #fcfdff;
+    }
+
+    .ambillons-table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 520px;
+    }
+
+    .ambillons-table th {
+      text-align: left;
+      background: #eef2f8;
+      color: #3f4f68;
+      font-size: 13px;
+      padding: 10px 11px;
+      border-bottom: 1px solid #d9e0eb;
+      white-space: nowrap;
+    }
+
+    .ambillons-table td {
+      font-size: 14px;
+      padding: 10px 11px;
+      border-bottom: 1px solid #e4e9f2;
+      color: #334b6f;
+      white-space: nowrap;
+    }
+
+    .ambillons-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .ambillon-id {
+      font-weight: 700;
+      color: #2e466c;
+    }
+
+    .ambillon-ca {
+      font-weight: 700;
+    }
+
+    .details-modal {
+      width: min(980px, 100%);
+    }
+
+    .details-head-actions {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .export-details-btn {
+      border: none;
+      border-radius: 6px;
+      min-height: 34px;
+      padding: 0 12px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+      background: linear-gradient(90deg, #244f92, #2c67b8);
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .export-details-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .details-table-wrap {
+      border: 1px solid #d5dce8;
+      border-radius: 8px;
+      overflow: auto;
+      background: #fcfdff;
+      margin-bottom: 10px;
+    }
+
+    .details-summary-table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      background: #fff;
+    }
+
+    .details-summary-table th,
+    .details-summary-table td {
+      border: 1px solid #d8dde6;
+      padding: 8px 10px;
+      vertical-align: middle;
+      word-break: break-word;
+      font-size: 14px;
+    }
+
+    .details-meta-table th {
+      width: 36%;
+      text-align: left;
+      background: #f5f7fa;
+      color: #354055;
+      font-weight: 750;
+    }
+
+    .details-meta-table td {
+      color: #2f3a4c;
+      font-weight: 600;
+    }
+
+    .details-items-table th {
+      text-align: left;
+      background: #f5f7fa;
+      color: #354055;
+      font-weight: 750;
+    }
+
+    .details-items-table td {
+      color: #3f4a5d;
+      font-weight: 600;
+    }
+
+    .details-items-table th:not(:first-child),
+    .details-items-table td:not(:first-child) {
+      text-align: center;
+    }
+
+    .details-totals-table th {
+      width: 50%;
+      text-align: left;
+      background: #f5f7fa;
+      color: #354055;
+      font-weight: 750;
+    }
+
+    .details-totals-table td {
+      text-align: right;
+      color: #2f3a4c;
+      font-weight: 700;
+    }
+
+    .details-totals-table .details-grand-total th,
+    .details-totals-table .details-grand-total td {
+      background: #eef4ff;
+      color: #1f4f9f;
+      font-weight: 800;
+    }
+
+    .details-message {
+      min-height: 18px;
+      margin: 10px 0 0;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--muted);
+    }
+
+    .details-message.error {
+      color: var(--danger);
+    }
+
+    .details-message.success {
+      color: #1f8f60;
+    }
+
+    .stock-alert-text {
+      margin: 0 0 10px;
+      font-size: 14px;
+      color: #3d4e66;
+      font-weight: 600;
+    }
+
+    .stock-alert-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 8px;
+    }
+
+    .stock-alert-item {
+      border: 1px solid #e3d0cd;
+      border-radius: 7px;
+      background: #fff6f5;
+      padding: 9px 10px;
+    }
+
+    .stock-alert-name {
+      display: block;
+      font-size: 14px;
+      font-weight: 700;
+      color: #8c2f2f;
+      margin-bottom: 4px;
+    }
+
+    .stock-alert-qty {
+      display: block;
+      font-size: 13px;
+      color: #5f6f84;
+    }
+
+    .stock-alert-actions {
+      margin-top: 12px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .stock-alert-btn {
+      border-radius: 7px;
+      min-height: 36px;
+      padding: 0 14px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .stock-alert-btn.cancel {
+      border: 1px solid #cfd8e6;
+      background: #ffffff;
+      color: #355071;
+    }
+
+    .stock-alert-btn.confirm {
+      border: none;
+      background: linear-gradient(90deg, #b84c2f, #ca3c3c);
+      color: #fff;
+    }
+
+    @media (max-width: 900px) {
+      .orders-table {
+        min-width: 740px;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .page {
+        min-height: auto;
+      }
+
+      .toolbar {
+        display: grid;
+        grid-template-columns: 1fr;
+      }
+
+      .search-box {
+        flex: 1 1 auto;
+      }
+
+      .toolbar-btn {
+        width: 100%;
+      }
+
+      .orders-table {
+        min-width: 620px;
+      }
+
+      .foot {
+        justify-content: center;
+      }
+
+      .ambillon-form {
+        grid-template-columns: 1fr;
+      }
+
+    }
+
+    @media (max-width: 500px) {
+      body {
+        padding: 6px;
+      }
+
+      .table-wrap {
+        border-width: 1px;
+      }
+
+      .orders-table {
+        min-width: 560px;
+      }
+
+      .ambillons-table {
+        min-width: 460px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="head">Bons de Commande Recus</header>
+
+    <section class="content">
+      <div class="toolbar">
+        <label class="search-box" for="searchInput">
+          <input id="searchInput" type="search" placeholder="Rechercher un client..." />
+          <span class="search-icon">&#128269;</span>
+        </label>
+        <button id="commandBtn" class="toolbar-btn command-btn" type="button">Commandes confirmees</button>
+        <button id="openAmbillonsBtn" class="toolbar-btn ambillons-btn" type="button">Listes des ambillons</button>
+      </div>
+
+      <hr class="separator" />
+
+      <div class="table-wrap">
+        <table class="orders-table">
+          <thead>
+            <tr>
+              <th># Bon</th>
+              <th>Client</th>
+              <th>Ambillon</th>
+              <th>Date</th>
+              <th>Montant Total</th>
+              <th>Statut</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="ordersBody"></tbody>
+        </table>
+      </div>
+
+      <div class="foot">
+        <a class="back-link" href="index.html">Retour au tableau de bord</a>
+      </div>
+    </section>
+  </main>
+
+  <div id="ambillonsModal" class="modal-backdrop" aria-hidden="true">
+    <section class="modal">
+      <header class="modal-head">
+        <h2 class="modal-title">Listes des ambillons</h2>
+        <button id="closeAmbillonsBtn" class="close-modal-btn" type="button">X</button>
+      </header>
+
+      <div class="modal-body">
+        <form id="ambillonForm" class="ambillon-form" novalidate>
+          <div class="field">
+            <label for="ambillonId">ID</label>
+            <input id="ambillonId" name="ambillonId" type="text" required />
+          </div>
+          <div class="field">
+            <label for="ambillonNom">Nom</label>
+            <input id="ambillonNom" name="ambillonNom" type="text" required />
+          </div>
+          <div class="field">
+            <label for="ambillonCa">Chiffres d'affaires</label>
+            <input id="ambillonCa" name="ambillonCa" type="number" min="0" step="0.01" required />
+          </div>
+          <button id="saveAmbillonBtn" class="save-ambillon-btn" type="submit">Ajouter l'ambillon</button>
+        </form>
+
+        <p id="ambillonMessage" class="ambillon-message"></p>
+
+        <div class="ambillons-table-wrap">
+          <table class="ambillons-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Nom</th>
+                <th>Chiffres d'affaires</th>
+              </tr>
+            </thead>
+            <tbody id="ambillonsBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div id="orderDetailsModal" class="modal-backdrop" aria-hidden="true">
+    <section class="modal details-modal">
+      <header class="modal-head">
+        <h2 class="modal-title">Details du bon</h2>
+        <div class="details-head-actions">
+          <button id="exportOrderPdfBtn" class="export-details-btn" type="button">Exporter</button>
+          <button id="closeOrderDetailsBtn" class="close-modal-btn" type="button">X</button>
+        </div>
+      </header>
+      <div class="modal-body">
+        <div class="details-table-wrap">
+          <table class="details-summary-table details-meta-table">
+            <tbody id="orderMeta"></tbody>
+          </table>
+        </div>
+
+        <div class="details-table-wrap">
+          <table class="details-summary-table details-items-table">
+            <thead>
+              <tr>
+                <th>Produit</th>
+                <th>Quantite</th>
+                <th>Prix U</th>
+                <th>Remise</th>
+                <th>TVA</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody id="orderDetailsBody"></tbody>
+          </table>
+        </div>
+
+        <div class="details-table-wrap">
+          <table class="details-summary-table details-totals-table">
+            <tbody id="orderTotalsBody"></tbody>
+          </table>
+        </div>
+
+        <p id="detailsMessage" class="details-message"></p>
+      </div>
+    </section>
+  </div>
+
+  <div id="stockAlertModal" class="modal-backdrop" aria-hidden="true">
+    <section class="modal">
+      <header class="modal-head">
+        <h2 class="modal-title">Stock insuffisant</h2>
+      </header>
+      <div class="modal-body">
+        <p class="stock-alert-text">La quantite demandee depasse le stock pour ces produits :</p>
+        <ul id="stockAlertList" class="stock-alert-list"></ul>
+        <div class="stock-alert-actions">
+          <button id="stockAlertCancelBtn" class="stock-alert-btn cancel" type="button">Annuler</button>
+          <button id="stockAlertConfirmBtn" class="stock-alert-btn confirm" type="button">Confirmer</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script defer src="https://www.gstatic.com/firebasejs/12.9.0/firebase-app-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/12.9.0/firebase-auth-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore-compat.js"></script>
+  <script defer src="auth-guard.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+  <script defer>
+    const FIREBASE_CONFIG = {
+      projectId: "stock-39779",
+      appId: "1:158388559832:web:b602cacd8029b589c51cad",
+      storageBucket: "stock-39779.firebasestorage.app",
+      apiKey: "AIzaSyDZanRdCzy76lJpXHvAML64QGHjlGV41Lk",
+      authDomain: "stock-39779.firebaseapp.com",
+      messagingSenderId: "158388559832",
+      measurementId: "G-DJY60E2N7R"
+    };
+    const AMBILLONS_COLLECTION = "ambillons";
+    const ORDERS_COLLECTION = "bons_commande";
+    const PRODUCTS_COLLECTION = "produits";
+
+    let db = null;
+    let ambillonsCache = [];
+    let ordersCache = [];
+    let currentUserUid = "";
+    let showConfirmedOnly = false;
+    let selectedOrder = null;
+    let refs = null;
+    let stockAlertResolve = null;
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      if (!window.AuthGuard) {
+        window.location.replace("auth.html");
+        return;
+      }
+
+      const isAuthenticated = await window.AuthGuard.ensureAuthenticatedUser();
+      if (!isAuthenticated) {
+        return;
+      }
+
+      refs = {
+        searchInput: document.getElementById("searchInput"),
+        commandBtn: document.getElementById("commandBtn"),
+        openAmbillonsBtn: document.getElementById("openAmbillonsBtn"),
+        closeAmbillonsBtn: document.getElementById("closeAmbillonsBtn"),
+        ambillonsModal: document.getElementById("ambillonsModal"),
+        ambillonForm: document.getElementById("ambillonForm"),
+        saveAmbillonBtn: document.getElementById("saveAmbillonBtn"),
+        ambillonMessage: document.getElementById("ambillonMessage"),
+        ambillonsBody: document.getElementById("ambillonsBody"),
+        ordersBody: document.getElementById("ordersBody"),
+        orderDetailsModal: document.getElementById("orderDetailsModal"),
+        closeOrderDetailsBtn: document.getElementById("closeOrderDetailsBtn"),
+        exportOrderPdfBtn: document.getElementById("exportOrderPdfBtn"),
+        orderMeta: document.getElementById("orderMeta"),
+        orderDetailsBody: document.getElementById("orderDetailsBody"),
+        orderTotalsBody: document.getElementById("orderTotalsBody"),
+        detailsMessage: document.getElementById("detailsMessage"),
+        stockAlertModal: document.getElementById("stockAlertModal"),
+        stockAlertList: document.getElementById("stockAlertList"),
+        stockAlertCancelBtn: document.getElementById("stockAlertCancelBtn"),
+        stockAlertConfirmBtn: document.getElementById("stockAlertConfirmBtn")
+      };
+
+      if (window.firebase && firebase.auth && firebase.auth().currentUser) {
+        currentUserUid = String(firebase.auth().currentUser.uid || "");
+      }
+
+      bindEvents();
+      await initAmbillonsStore();
+      await loadOrders();
+    });
+
+    function bindEvents() {
+      refs.searchInput.addEventListener("input", () => {
+        refreshOrdersView();
+      });
+
+      refs.commandBtn.addEventListener("click", async () => {
+        showConfirmedOnly = !showConfirmedOnly;
+        await loadOrders();
+      });
+
+      refs.openAmbillonsBtn.addEventListener("click", () => {
+        openAmbillonsModal();
+      });
+
+      refs.closeAmbillonsBtn.addEventListener("click", () => {
+        closeAmbillonsModal();
+      });
+
+      refs.ambillonsModal.addEventListener("click", (event) => {
+        if (event.target === refs.ambillonsModal) {
+          closeAmbillonsModal();
+        }
+      });
+      refs.orderDetailsModal.addEventListener("click", (event) => {
+        if (event.target === refs.orderDetailsModal) {
+          closeOrderDetailsModal();
+        }
+      });
+      refs.stockAlertModal.addEventListener("click", (event) => {
+        if (event.target === refs.stockAlertModal) {
+          resolveStockAlert(false);
+        }
+      });
+
+      refs.ambillonForm.addEventListener("submit", submitAmbillon);
+      refs.ordersBody.addEventListener("click", onOrdersBodyClick);
+      refs.closeOrderDetailsBtn.addEventListener("click", closeOrderDetailsModal);
+      refs.exportOrderPdfBtn.addEventListener("click", exportSelectedOrderPdf);
+      refs.stockAlertCancelBtn.addEventListener("click", () => resolveStockAlert(false));
+      refs.stockAlertConfirmBtn.addEventListener("click", () => resolveStockAlert(true));
+
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+          if (refs.stockAlertModal.classList.contains("open")) {
+            resolveStockAlert(false);
+            return;
+          }
+          if (refs.orderDetailsModal.classList.contains("open")) {
+            closeOrderDetailsModal();
+            return;
+          }
+          if (refs.ambillonsModal.classList.contains("open")) {
+            closeAmbillonsModal();
+          }
+        }
+      });
+
+      updateCommandButtonState();
+    }
+
+    async function initAmbillonsStore() {
+      if (!initFirestore()) {
+        setAmbillonMessage("Firestore indisponible. Impossible de charger les ambillons.", "error");
+        renderAmbillons([]);
+        return;
+      }
+      if (!currentUserUid) {
+        setAmbillonMessage("Session utilisateur introuvable.", "error");
+        renderAmbillons([]);
+        return;
+      }
+      await loadAmbillons();
+    }
+
+    function initFirestore() {
+      if (!window.firebase) {
+        return false;
+      }
+
+      try {
+        if (!firebase.apps || firebase.apps.length === 0) {
+          firebase.initializeApp(FIREBASE_CONFIG);
+        }
+        if (typeof firebase.firestore !== "function") {
+          return false;
+        }
+        db = firebase.firestore();
+        return true;
+      } catch (error) {
+        return false;
+      }
+    }
+
+    function openAmbillonsModal() {
+      refs.ambillonsModal.classList.add("open");
+      refs.ambillonsModal.setAttribute("aria-hidden", "false");
+      setAmbillonMessage("", "");
+    }
+
+    function closeAmbillonsModal() {
+      refs.ambillonsModal.classList.remove("open");
+      refs.ambillonsModal.setAttribute("aria-hidden", "true");
+    }
+
+    async function submitAmbillon(event) {
+      event.preventDefault();
+
+      if (!db) {
+        setAmbillonMessage("Base indisponible. Reessaie plus tard.", "error");
+        return;
+      }
+
+      const rawId = refs.ambillonForm.ambillonId.value.trim();
+      const id = normalizeAmbillonId(rawId);
+      const nom = refs.ambillonForm.ambillonNom.value.trim();
+      const caRaw = refs.ambillonForm.ambillonCa.value.trim().replace(",", ".");
+      const chiffreAffaires = Number(caRaw);
+
+      if (!id || !nom || caRaw === "") {
+        setAmbillonMessage("Merci de remplir ID, Nom et chiffres d'affaires.", "error");
+        return;
+      }
+
+      if (!Number.isFinite(chiffreAffaires) || chiffreAffaires < 0) {
+        setAmbillonMessage("Chiffres d'affaires doit etre un nombre positif.", "error");
+        return;
+      }
+
+      const duplicate = ambillonsCache.some((item) => normalizeAmbillonId(item.id) === id);
+      if (duplicate) {
+        setAmbillonMessage("Cet ID existe deja dans la liste des ambillons.", "error");
+        return;
+      }
+
+      refs.saveAmbillonBtn.disabled = true;
+      refs.saveAmbillonBtn.textContent = "Ajout...";
+
+      try {
+        await db.collection(AMBILLONS_COLLECTION).doc(id).set({
+          id: id,
+          idKey: id,
+          nom: nom,
+          chiffreAffaires: chiffreAffaires,
+          ownerUid: currentUserUid,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        refs.ambillonForm.reset();
+        setAmbillonMessage("Ambillon ajoute avec succes.", "success");
+        await loadAmbillons();
+      } catch (error) {
+        const errorCode = error && error.code ? String(error.code) : "";
+        if (errorCode === "permission-denied") {
+          setAmbillonMessage("ID ambillon deja utilise ou operation non autorisee.", "error");
+          return;
+        }
+        setAmbillonMessage("Echec d'ajout. Verifie ta connexion Firebase.", "error");
+      } finally {
+        refs.saveAmbillonBtn.disabled = false;
+        refs.saveAmbillonBtn.textContent = "Ajouter l'ambillon";
+      }
+    }
+
+    async function loadAmbillons() {
+      if (!db) {
+        return;
+      }
+
+      try {
+        const snapshot = await db.collection(AMBILLONS_COLLECTION).where("ownerUid", "==", currentUserUid).get();
+        ambillonsCache = snapshot.docs.map((doc) => {
+          const data = doc.data();
+          return {
+            id: String(data.id || doc.id || "").trim(),
+            nom: String(data.nom || "").trim(),
+            chiffreAffaires: Number(data.chiffreAffaires) || 0
+          };
+        }).sort((a, b) => a.id.localeCompare(b.id, "fr", { numeric: true, sensitivity: "base" }));
+        renderAmbillons(ambillonsCache);
+      } catch (error) {
+        renderAmbillons([]);
+        setAmbillonMessage("Impossible de charger la liste des ambillons.", "error");
+      }
+    }
+
+    async function loadOrders() {
+      if (!db || !currentUserUid) {
+        ordersCache = [];
+        refreshOrdersView();
+        return;
+      }
+
+      try {
+        const snapshot = await db.collection(ORDERS_COLLECTION).where("ownerUid", "==", currentUserUid).get();
+        ordersCache = snapshot.docs
+          .map((doc) => mapOrderFromDoc(doc))
+          .sort((a, b) => b.createdAtMs - a.createdAtMs);
+        refreshOrdersView();
+      } catch (error) {
+        ordersCache = [];
+        refreshOrdersView();
+      }
+    }
+
+    function mapOrderFromDoc(doc) {
+      const data = doc && typeof doc.data === "function" ? doc.data() : {};
+      const total = Number(data.total);
+      const amountText = data.amount ? String(data.amount) : formatRevenue(total);
+      const normalizedStatus = normalizeOrderStatus(data.status, data.confirmedAt);
+      return {
+        docId: String(doc && doc.id ? doc.id : ""),
+        bon: String(data.bon || data.bonId || doc.id || ""),
+        client: String(data.client || ""),
+        ambillon: String(data.ambillon || data.ambillonId || ""),
+        date: String(data.date || ""),
+        amount: amountText,
+        total: Number.isFinite(total) ? total : 0,
+        status: normalizedStatus,
+        confirmed: normalizedStatus === "confirme",
+        items: Array.isArray(data.items) ? data.items.map((item) => {
+          return {
+            productId: String(item && item.productId ? item.productId : ""),
+            name: String(item && item.name ? item.name : ""),
+            prix: Number(item && item.prix !== undefined ? item.prix : 0),
+            remise: Number(item && item.remise !== undefined ? item.remise : 0),
+            tva: Number(item && item.tva !== undefined ? item.tva : 0),
+            qty: Number(item && item.qty !== undefined ? item.qty : 0),
+            totalHt: Number(item && item.totalHt !== undefined ? item.totalHt : 0),
+            totalWithRemise: Number(item && item.totalWithRemise !== undefined ? item.totalWithRemise : 0),
+            total: Number(item && item.total !== undefined ? item.total : 0)
+          };
+        }) : [],
+        createdAtMs: getCreatedAtMillis(data.createdAt)
+      };
+    }
+
+    function normalizeOrderStatus(rawStatus, confirmedAt) {
+      const statusValue = String(rawStatus || "").trim().toLowerCase();
+      if (statusValue === "confirme" || statusValue === "confirmé") {
+        return "confirme";
+      }
+      if (confirmedAt && (typeof confirmedAt.toMillis === "function" || typeof confirmedAt.seconds === "number")) {
+        return "confirme";
+      }
+      return "en_attente";
+    }
+
+    function getCreatedAtMillis(rawCreatedAt) {
+      if (rawCreatedAt && typeof rawCreatedAt.toMillis === "function") {
+        return rawCreatedAt.toMillis();
+      }
+      if (rawCreatedAt && typeof rawCreatedAt.seconds === "number") {
+        return Number(rawCreatedAt.seconds) * 1000;
+      }
+      return 0;
+    }
+
+    function getFilteredOrders() {
+      const term = normalize(refs.searchInput.value);
+      let list = Array.isArray(ordersCache) ? [...ordersCache] : [];
+
+      if (showConfirmedOnly) {
+        list = list.filter((item) => item.confirmed);
+      }
+
+      if (term === "") {
+        return list;
+      }
+
+      return list.filter((item) => {
+        return normalize(item.client).includes(term) ||
+          normalize(item.bon).includes(term) ||
+          normalize(item.ambillon).includes(term) ||
+          normalize(item.date).includes(term) ||
+          normalize(item.status).includes(term);
+      });
+    }
+
+    function refreshOrdersView() {
+      renderOrders(getFilteredOrders());
+      updateCommandButtonState();
+    }
+
+    function updateCommandButtonState() {
+      if (!refs || !refs.commandBtn) {
+        return;
+      }
+      refs.commandBtn.classList.toggle("active-filter", showConfirmedOnly);
+      refs.commandBtn.textContent = showConfirmedOnly ? "Voir toutes les commandes" : "Commandes confirmees";
+    }
+
+    function renderAmbillons(list) {
+      if (!refs || !refs.ambillonsBody) {
+        return;
+      }
+
+      if (!Array.isArray(list) || list.length === 0) {
+        refs.ambillonsBody.innerHTML = "<tr><td colspan='3'>Aucun ambillon enregistre.</td></tr>";
+        return;
+      }
+
+      refs.ambillonsBody.innerHTML = list.map((item) => {
+        return "<tr>" +
+          "<td class='ambillon-id'>" + escapeHtml(item.id) + "</td>" +
+          "<td>" + escapeHtml(item.nom) + "</td>" +
+          "<td class='ambillon-ca'>" + escapeHtml(formatRevenue(item.chiffreAffaires)) + "</td>" +
+        "</tr>";
+      }).join("");
+    }
+
+    function setAmbillonMessage(text, type) {
+      refs.ambillonMessage.textContent = text;
+      refs.ambillonMessage.className = "ambillon-message " + (type || "");
+    }
+
+    function renderOrders(list) {
+      const body = document.getElementById("ordersBody");
+      if (!body) {
+        return;
+      }
+
+      if (!Array.isArray(list) || list.length === 0) {
+        body.innerHTML = "<tr><td colspan='7'>Aucun bon de commande trouve.</td></tr>";
+        return;
+      }
+
+      body.innerHTML = list.map((item) => {
+        const statusLabel = item.confirmed ? "Confirme" : "En attente";
+        const statusClass = item.confirmed ? "confirmed" : "pending";
+        return "<tr>" +
+          "<td class='bon-id'>" + escapeHtml(item.bon) + "</td>" +
+          "<td class='client-name'>" + escapeHtml(item.client) + "</td>" +
+          "<td>" + escapeHtml(item.ambillon) + "</td>" +
+          "<td>" + escapeHtml(item.date) + "</td>" +
+          "<td class='amount'>" + escapeHtml(item.amount) + "</td>" +
+          "<td><span class='status-chip " + statusClass + "'>" + statusLabel + "</span></td>" +
+          "<td><div class='order-actions'>" +
+            "<button type='button' class='confirm-row-btn' data-docid='" + escapeHtml(item.docId) + "'" + (item.confirmed ? " disabled" : "") + ">Confirmer</button>" +
+            "<button type='button' class='delete-row-btn' data-docid='" + escapeHtml(item.docId) + "'>Supprimer</button>" +
+            "<button type='button' class='details-btn' data-docid='" + escapeHtml(item.docId) + "'>Voir Details<span class='details-arrow'>&rsaquo;</span></button>" +
+          "</div></td>" +
+        "</tr>";
+      }).join("");
+    }
+
+    async function onOrdersBodyClick(event) {
+      const confirmBtn = event.target.closest(".confirm-row-btn");
+      if (confirmBtn) {
+        const docId = String(confirmBtn.dataset.docid || "");
+        if (!docId) {
+          return;
+        }
+        confirmBtn.disabled = true;
+        const oldText = confirmBtn.textContent;
+        confirmBtn.textContent = "En cours...";
+        try {
+          const isConfirmed = await confirmOrder(docId);
+          if (isConfirmed) {
+            confirmBtn.textContent = "Confirme";
+          } else {
+            confirmBtn.textContent = oldText;
+            confirmBtn.disabled = false;
+          }
+        } catch (error) {
+          confirmBtn.textContent = oldText;
+          confirmBtn.disabled = false;
+          window.alert("Echec de confirmation du bon: " + getFirebaseErrorText(error));
+        }
+        return;
+      }
+
+      const deleteBtn = event.target.closest(".delete-row-btn");
+      if (deleteBtn) {
+        const deleteDocId = String(deleteBtn.dataset.docid || "");
+        if (!deleteDocId) {
+          return;
+        }
+
+        const targetOrder = ordersCache.find((item) => item.docId === deleteDocId);
+        const bonLabel = targetOrder && targetOrder.bon ? String(targetOrder.bon) : deleteDocId;
+        const shouldDelete = window.confirm("Supprimer le bon " + bonLabel + " ?");
+        if (!shouldDelete) {
+          return;
+        }
+
+        deleteBtn.disabled = true;
+        const oldDeleteText = deleteBtn.textContent;
+        deleteBtn.textContent = "Suppression...";
+        try {
+          await deleteOrder(deleteDocId);
+        } catch (error) {
+          deleteBtn.textContent = oldDeleteText;
+          deleteBtn.disabled = false;
+          window.alert("Echec de suppression du bon: " + getFirebaseErrorText(error));
+        }
+        return;
+      }
+
+      const detailsBtn = event.target.closest(".details-btn");
+      if (!detailsBtn) {
+        return;
+      }
+      const detailsDocId = String(detailsBtn.dataset.docid || "");
+      if (!detailsDocId) {
+        return;
+      }
+      const order = ordersCache.find((item) => item.docId === detailsDocId);
+      if (!order) {
+        return;
+      }
+      openOrderDetailsModal(order);
+    }
+
+    async function confirmOrder(docId) {
+      if (!db) {
+        throw new Error("Base indisponible");
+      }
+
+      const orderRef = db.collection(ORDERS_COLLECTION).doc(docId);
+      const orderSnapshot = await orderRef.get();
+      if (!orderSnapshot.exists) {
+        throw new Error("Bon introuvable");
+      }
+      const orderData = orderSnapshot.data() || {};
+      const resolvedQuantities = await resolveOrderProductQuantities(orderData.items);
+      const stockShortages = await findStockShortages(resolvedQuantities, orderData.items);
+      if (stockShortages.length > 0) {
+        const shouldContinue = await askStockAlertConfirmation(stockShortages);
+        if (!shouldContinue) {
+          return false;
+        }
+      }
+
+      await db.runTransaction(async (transaction) => {
+        const liveOrderSnapshot = await transaction.get(orderRef);
+        if (!liveOrderSnapshot.exists) {
+          throw new Error("Bon introuvable");
+        }
+        const liveOrderData = liveOrderSnapshot.data() || {};
+        const statusValue = normalizeOrderStatus(liveOrderData.status, liveOrderData.confirmedAt);
+        if (statusValue === "confirme") {
+          return;
+        }
+
+        const nowTimestamp = firebase.firestore.FieldValue.serverTimestamp();
+        const productUpdates = [];
+        for (const [productId, qtyToRemove] of resolvedQuantities.entries()) {
+          const safeProductId = String(productId || "").trim();
+          if (!isValidFirestoreDocId(safeProductId) || qtyToRemove <= 0) {
+            continue;
+          }
+          const productRef = db.collection(PRODUCTS_COLLECTION).doc(safeProductId);
+          const productSnapshot = await transaction.get(productRef);
+          if (!productSnapshot.exists) {
+            continue;
+          }
+          const productData = productSnapshot.data() || {};
+          const currentQty = Number(productData.quantiteParPackets);
+          const safeCurrentQty = Number.isFinite(currentQty) ? currentQty : 0;
+          const nextQty = Math.max(0, safeCurrentQty - qtyToRemove);
+          productUpdates.push({
+            productRef,
+            nextQty
+          });
+        }
+
+        productUpdates.forEach((entry) => {
+          transaction.update(entry.productRef, {
+            quantiteParPackets: entry.nextQty,
+            updatedAt: nowTimestamp
+          });
+        });
+
+        transaction.update(orderRef, {
+          status: "confirme",
+          confirmedAt: nowTimestamp,
+          updatedAt: nowTimestamp
+        });
+      });
+
+      ordersCache = ordersCache.map((item) => {
+        if (item.docId !== docId) {
+          return item;
+        }
+        return {
+          ...item,
+          status: "confirme",
+          confirmed: true
+        };
+      });
+      refreshOrdersView();
+      return true;
+    }
+
+    async function deleteOrder(docId) {
+      if (!db) {
+        throw new Error("Base indisponible");
+      }
+
+      await db.collection(ORDERS_COLLECTION).doc(docId).delete();
+      ordersCache = ordersCache.filter((item) => item.docId !== docId);
+
+      if (selectedOrder && selectedOrder.docId === docId) {
+        closeOrderDetailsModal();
+      }
+
+      refreshOrdersView();
+    }
+
+    async function resolveOrderProductQuantities(rawItems) {
+      const totalsByProduct = new Map();
+      const missingProductRefs = [];
+      const items = Array.isArray(rawItems) ? rawItems : [];
+
+      items.forEach((item) => {
+        const qty = Number(item && item.qty ? item.qty : 0);
+        if (!Number.isFinite(qty) || qty <= 0) {
+          return;
+        }
+        const rawProductId = String(item && item.productId ? item.productId : "").trim();
+        const productId = isValidFirestoreDocId(rawProductId) ? rawProductId : "";
+        if (productId) {
+          const previousQty = totalsByProduct.get(productId) || 0;
+          totalsByProduct.set(productId, previousQty + qty);
+          return;
+        }
+        const nameKey = normalize(item && item.name ? String(item.name) : "");
+        if (!nameKey) {
+          return;
+        }
+        missingProductRefs.push({
+          nameKey: nameKey,
+          qty: qty
+        });
+      });
+
+      if (!db || !currentUserUid || missingProductRefs.length === 0) {
+        return totalsByProduct;
+      }
+
+      const productsSnapshot = await db.collection(PRODUCTS_COLLECTION)
+        .where("ownerUid", "==", currentUserUid)
+        .get();
+
+      const nameToProductId = new Map();
+      productsSnapshot.docs.forEach((doc) => {
+        const data = doc.data();
+        const nameKey = normalize(data && data.nom ? String(data.nom) : "");
+        if (!nameKey || nameToProductId.has(nameKey)) {
+          return;
+        }
+        nameToProductId.set(nameKey, String(doc.id || ""));
+      });
+
+      missingProductRefs.forEach((entry) => {
+        const matchedProductId = nameToProductId.get(entry.nameKey);
+        if (!matchedProductId) {
+          return;
+        }
+        const previousQty = totalsByProduct.get(matchedProductId) || 0;
+        totalsByProduct.set(matchedProductId, previousQty + entry.qty);
+      });
+
+      return totalsByProduct;
+    }
+
+    async function findStockShortages(resolvedQuantities, rawItems) {
+      if (!db || !(resolvedQuantities instanceof Map) || resolvedQuantities.size === 0) {
+        return [];
+      }
+
+      const items = Array.isArray(rawItems) ? rawItems : [];
+      const itemNameById = new Map();
+      items.forEach((item) => {
+        const rawProductId = String(item && item.productId ? item.productId : "").trim();
+        const productId = isValidFirestoreDocId(rawProductId) ? rawProductId : "";
+        const productName = String(item && item.name ? item.name : "").trim();
+        if (!productId || !productName || itemNameById.has(productId)) {
+          return;
+        }
+        itemNameById.set(productId, productName);
+      });
+
+      const productIds = Array.from(resolvedQuantities.keys()).filter((productId) => {
+        return isValidFirestoreDocId(String(productId || "").trim());
+      });
+      if (productIds.length === 0) {
+        return [];
+      }
+
+      const checks = await Promise.all(productIds.map(async (productId) => {
+        const requestedQty = Number(resolvedQuantities.get(productId)) || 0;
+        const productSnapshot = await db.collection(PRODUCTS_COLLECTION).doc(productId).get();
+        const productData = productSnapshot.exists ? (productSnapshot.data() || {}) : {};
+        const availableQty = Number(productData.quantiteParPackets);
+        const safeAvailableQty = Number.isFinite(availableQty) ? availableQty : 0;
+        const productName = String(productData.nom || itemNameById.get(productId) || "Produit");
+        return {
+          productId: String(productId),
+          name: productName,
+          requestedQty: requestedQty,
+          availableQty: safeAvailableQty
+        };
+      }));
+
+      return checks
+        .filter((item) => item.requestedQty > item.availableQty)
+        .sort((a, b) => {
+          const diffA = a.requestedQty - a.availableQty;
+          const diffB = b.requestedQty - b.availableQty;
+          if (diffA !== diffB) {
+            return diffB - diffA;
+          }
+          return a.name.localeCompare(b.name, "fr", { sensitivity: "base" });
+        });
+    }
+
+    function askStockAlertConfirmation(shortages) {
+      if (!refs || !refs.stockAlertModal || !refs.stockAlertList) {
+        return Promise.resolve(false);
+      }
+
+      if (typeof stockAlertResolve === "function") {
+        const resolver = stockAlertResolve;
+        stockAlertResolve = null;
+        resolver(false);
+      }
+
+      refs.stockAlertList.innerHTML = shortages.map((item) => {
+        return "<li class='stock-alert-item'>" +
+          "<span class='stock-alert-name'>" + escapeHtml(item.name) + "</span>" +
+          "<span class='stock-alert-qty'>Stock actuel: " + escapeHtml(String(item.availableQty)) + " | Quantite du bon: " + escapeHtml(String(item.requestedQty)) + "</span>" +
+        "</li>";
+      }).join("");
+
+      refs.stockAlertModal.classList.add("open");
+      refs.stockAlertModal.setAttribute("aria-hidden", "false");
+
+      return new Promise((resolve) => {
+        stockAlertResolve = resolve;
+      });
+    }
+
+    function resolveStockAlert(accepted) {
+      if (!refs || !refs.stockAlertModal) {
+        return;
+      }
+
+      refs.stockAlertModal.classList.remove("open");
+      refs.stockAlertModal.setAttribute("aria-hidden", "true");
+      refs.stockAlertList.innerHTML = "";
+
+      if (typeof stockAlertResolve === "function") {
+        const resolver = stockAlertResolve;
+        stockAlertResolve = null;
+        resolver(Boolean(accepted));
+      }
+    }
+
+    function openOrderDetailsModal(order) {
+      selectedOrder = order;
+
+      const resolvedItems = Array.isArray(order.items) ? order.items.map((item) => resolveOrderItemAmounts(item)) : [];
+      const totals = computeOrderTotals(resolvedItems);
+
+      refs.orderMeta.innerHTML =
+        "<tr><th>Bon</th><td>" + escapeHtml(order.bon) + "</td></tr>" +
+        "<tr><th>Client</th><td>" + escapeHtml(order.client) + "</td></tr>" +
+        "<tr><th>Ambillon</th><td>" + escapeHtml(order.ambillon) + "</td></tr>" +
+        "<tr><th>Date</th><td>" + escapeHtml(order.date) + "</td></tr>" +
+        "<tr><th>Statut</th><td>" + (order.confirmed ? "Confirme" : "En attente") + "</td></tr>";
+
+      if (resolvedItems.length === 0) {
+        refs.orderDetailsBody.innerHTML = "<tr><td colspan='6'>Aucun detail de ligne disponible.</td></tr>";
+        refs.orderTotalsBody.innerHTML =
+          "<tr><th>Prix total HT</th><td>0 DH</td></tr>" +
+          "<tr><th>Prix avec remise</th><td>0 DH</td></tr>" +
+          "<tr class='details-grand-total'><th>Prix total</th><td>0 DH</td></tr>";
+        setDetailsMessage("Details incomplets pour ce bon.", "error");
+      } else {
+        refs.orderDetailsBody.innerHTML = resolvedItems.map((item) => {
+          return "<tr>" +
+            "<td>" + escapeHtml(String(item.name || "")) + "</td>" +
+            "<td>" + escapeHtml(String(item.qty)) + "</td>" +
+            "<td>" + escapeHtml(formatRevenue(item.prix)) + "</td>" +
+            "<td>" + escapeHtml(formatPercent(item.remise)) + "%</td>" +
+            "<td>" + escapeHtml(formatPercent(item.tva)) + "%</td>" +
+            "<td>" + escapeHtml(formatRevenue(item.total)) + "</td>" +
+          "</tr>";
+        }).join("");
+        refs.orderTotalsBody.innerHTML =
+          "<tr><th>Prix total HT</th><td>" + escapeHtml(formatRevenue(totals.totalHt)) + "</td></tr>" +
+          "<tr><th>Prix avec remise</th><td>" + escapeHtml(formatRevenue(totals.totalWithRemise)) + "</td></tr>" +
+          "<tr class='details-grand-total'><th>Prix total</th><td>" + escapeHtml(formatRevenue(totals.total)) + "</td></tr>";
+        setDetailsMessage("", "");
+      }
+
+      refs.exportOrderPdfBtn.disabled = false;
+      refs.orderDetailsModal.classList.add("open");
+      refs.orderDetailsModal.setAttribute("aria-hidden", "false");
+    }
+
+    function resolveOrderItemAmounts(item) {
+      const prix = Number(item && item.prix !== undefined ? item.prix : 0);
+      const remise = Math.max(0, Math.min(100, Number(item && item.remise !== undefined ? item.remise : 0)));
+      const tva = Math.max(0, Number(item && item.tva !== undefined ? item.tva : 0));
+      const qty = Math.max(0, Number(item && item.qty !== undefined ? item.qty : 0));
+      const fallbackTotalHt = prix * qty;
+      const totalHt = Number.isFinite(Number(item && item.totalHt)) ? Number(item.totalHt) : fallbackTotalHt;
+      const fallbackTotalWithRemise = totalHt * (1 - (remise / 100));
+      const totalWithRemise = Number.isFinite(Number(item && item.totalWithRemise))
+        ? Number(item.totalWithRemise)
+        : fallbackTotalWithRemise;
+      const fallbackTotal = totalWithRemise * (1 + (tva / 100));
+      const total = Number.isFinite(Number(item && item.total)) ? Number(item.total) : fallbackTotal;
+
+      return {
+        name: String(item && item.name ? item.name : ""),
+        prix: Number.isFinite(prix) ? prix : 0,
+        remise: Number.isFinite(remise) ? remise : 0,
+        tva: Number.isFinite(tva) ? tva : 0,
+        qty: Number.isFinite(qty) ? qty : 0,
+        totalHt: Number.isFinite(totalHt) ? totalHt : 0,
+        totalWithRemise: Number.isFinite(totalWithRemise) ? totalWithRemise : 0,
+        total: Number.isFinite(total) ? total : 0
+      };
+    }
+
+    function computeOrderTotals(items) {
+      const safeItems = Array.isArray(items) ? items : [];
+      return {
+        totalHt: safeItems.reduce((sum, item) => sum + (Number(item.totalHt) || 0), 0),
+        totalWithRemise: safeItems.reduce((sum, item) => sum + (Number(item.totalWithRemise) || 0), 0),
+        total: safeItems.reduce((sum, item) => sum + (Number(item.total) || 0), 0)
+      };
+    }
+
+    function closeOrderDetailsModal() {
+      selectedOrder = null;
+      refs.orderDetailsModal.classList.remove("open");
+      refs.orderDetailsModal.setAttribute("aria-hidden", "true");
+      refs.orderMeta.innerHTML = "";
+      refs.orderDetailsBody.innerHTML = "";
+      if (refs.orderTotalsBody) {
+        refs.orderTotalsBody.innerHTML = "";
+      }
+      setDetailsMessage("", "");
+    }
+
+    function setDetailsMessage(text, type) {
+      refs.detailsMessage.textContent = text || "";
+      refs.detailsMessage.className = "details-message " + (type || "");
+    }
+
+    function exportSelectedOrderPdf() {
+      if (!selectedOrder) {
+        setDetailsMessage("Aucun bon selectionne.", "error");
+        return;
+      }
+
+      if (!window.jspdf || !window.jspdf.jsPDF) {
+        setDetailsMessage("Export PDF indisponible: jsPDF non charge.", "error");
+        return;
+      }
+
+      const doc = new window.jspdf.jsPDF({ orientation: "portrait", unit: "pt", format: "a4" });
+      const left = 36;
+      let y = 34;
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(16);
+      doc.text("Bon de Commande - " + String(selectedOrder.bon || ""), left, y);
+      y += 20;
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(11);
+      doc.text("Client: " + String(selectedOrder.client || ""), left, y);
+      y += 16;
+      doc.text("Ambillon: " + String(selectedOrder.ambillon || ""), left, y);
+      y += 16;
+      doc.text("Date: " + String(selectedOrder.date || ""), left, y);
+      y += 16;
+      doc.text("Montant total: " + String(selectedOrder.amount || "0 DH"), left, y);
+      y += 18;
+
+      const items = Array.isArray(selectedOrder.items) ? selectedOrder.items : [];
+      const rows = items.map((item, index) => [
+        String(index + 1),
+        String(item.name || ""),
+        formatRevenue(Number(item.prix) || 0).replace(" DH", ""),
+        formatPercent(Number(item.remise) || 0),
+        String(Number(item.qty) || 0),
+        formatRevenue(Number(item.total) || 0).replace(" DH", "")
+      ]);
+
+      if (typeof doc.autoTable === "function") {
+        doc.autoTable({
+          startY: y,
+          margin: { left: 24, right: 24 },
+          head: [["#", "Produit", "Prix (DH)", "Remise (%)", "Quantite", "Sous-total (DH)"]],
+          body: rows.length > 0 ? rows : [["-", "Aucune ligne", "-", "-", "-", "-"]],
+          styles: { fontSize: 9, cellPadding: 4, overflow: "linebreak" },
+          headStyles: { fillColor: [47, 79, 126] },
+          theme: "grid"
+        });
+      }
+
+      const fileName = slugify(String(selectedOrder.bon || "bon")) + ".pdf";
+      doc.save(fileName);
+      setDetailsMessage("PDF exporte avec succes.", "success");
+    }
+
+    function formatRevenue(value) {
+      const amount = Number(value);
+      if (!Number.isFinite(amount)) {
+        return "0 DH";
+      }
+      return amount.toLocaleString("fr-FR") + " DH";
+    }
+
+    function formatPercent(value) {
+      const amount = Number(value);
+      if (!Number.isFinite(amount)) {
+        return "0";
+      }
+      return amount.toLocaleString("fr-FR", { maximumFractionDigits: 2 });
+    }
+
+    function slugify(value) {
+      return String(value || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "") || "bon";
+    }
+
+    function normalize(text) {
+      return String(text || "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .trim();
+    }
+
+    function normalizeAmbillonId(value) {
+      return String(value || "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toUpperCase()
+        .trim()
+        .replace(/\s+/g, "-")
+        .replace(/[^A-Z0-9_-]/g, "");
+    }
+
+    function isValidFirestoreDocId(value) {
+      const id = String(value || "").trim();
+      return id !== "" && !id.includes("/");
+    }
+
+    function getFirebaseErrorText(error) {
+      const code = error && error.code ? String(error.code) : "";
+      const message = error && error.message ? String(error.message) : "";
+      if (code && message) {
+        const normalizedMessage = String(message).trim();
+        if (normalizedMessage !== "" && !normalizedMessage.toLowerCase().includes(code.toLowerCase())) {
+          return code + " - " + normalizedMessage;
+        }
+      }
+      if (code) {
+        return code;
+      }
+      if (message) {
+        return message;
+      }
+      return "erreur inconnue";
+    }
+
+    function escapeHtml(input) {
+      return String(input)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+  </script>
+</body>
+</html>

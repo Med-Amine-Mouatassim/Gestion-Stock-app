@@ -1,0 +1,1284 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/svg+xml" href="./photo/favicon.svg" />
+  <title>Gestion du Stock</title>
+  <style>
+    :root {
+      --blue-700: #2f4f7e;
+      --blue-600: #3b587f;
+      --bg: #eef1f5;
+      --line: #dde2ea;
+      --text: #223a5d;
+      --green: #3c947f;
+      --orange: #e78f1a;
+      --slate: #6b778a;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.4;
+    }
+
+    .topbar {
+      min-height: 64px;
+      background: linear-gradient(90deg, #0f2446 0%, #2f4f7e 100%);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 18px;
+      gap: 12px;
+      width: 100%;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    .brand-a {
+      color: #e53935;
+      transform: skewX(-15deg);
+      font-size: 32px;
+      line-height: 1;
+    }
+
+    .brand-name {
+      font-size: 26px;
+      letter-spacing: 0.3px;
+    }
+
+    .back-btn {
+      color: #fff;
+      text-decoration: none;
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      background: rgba(255, 255, 255, 0.12);
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-size: 14px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .back-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .layout {
+      max-width: 1280px;
+      margin: 0 auto;
+      min-height: calc(100vh - 64px);
+    }
+
+    .content {
+      padding: 18px;
+    }
+
+    .page-title {
+      margin: 0 0 14px;
+      font-size: 40px;
+      color: #1f3658;
+    }
+
+    .toolbar {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr auto auto;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .toolbar > * {
+      min-width: 0;
+    }
+
+    .search,
+    .filter {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px 12px;
+      color: #6f8097;
+      font-size: 16px;
+      min-height: 46px;
+      min-width: 0;
+    }
+
+    .search input,
+    .filter select {
+      width: 100%;
+      border: none;
+      background: transparent;
+      color: #2f4668;
+      font-size: 16px;
+      outline: none;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 8px;
+      padding: 11px 16px;
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .btn.add {
+      background: linear-gradient(90deg, #e59012, #ef9d22);
+    }
+
+    .btn.export {
+      background: linear-gradient(90deg, #3b587f, #2f4f7e);
+    }
+
+    .btn.secondary {
+      background: #e9eef5;
+      color: #324b6d;
+    }
+
+    .page-message {
+      min-height: 20px;
+      margin: 0 0 10px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #607590;
+    }
+
+    .page-message.error {
+      color: #c54235;
+    }
+
+    .page-message.success {
+      color: #2f8a66;
+    }
+
+    .panel {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(22, 38, 62, 0.08);
+      overflow: hidden;
+    }
+
+    .panel-head {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .panel-head h2 {
+      margin: 0;
+      font-size: 22px;
+      color: #274469;
+    }
+
+    .mini-pagination {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #657891;
+      font-size: 14px;
+      font-weight: 600;
+      flex-wrap: wrap;
+    }
+
+    .chip {
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #f8fafc;
+      padding: 5px 9px;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 980px;
+    }
+
+    thead th {
+      text-align: left;
+      background: #f5f7fb;
+      color: #607590;
+      font-size: 14px;
+      font-weight: 700;
+      padding: 11px 10px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    tbody td {
+      padding: 9px 10px;
+      border-bottom: 1px solid #e8ecf3;
+      vertical-align: middle;
+      font-size: 14px;
+      color: #354d72;
+    }
+
+    .id {
+      font-weight: 700;
+      color: #4a5f7f;
+      white-space: nowrap;
+    }
+
+    .status {
+      border-radius: 6px;
+      color: #fff;
+      padding: 6px 10px;
+      font-size: 13px;
+      font-weight: 700;
+      display: inline-block;
+      min-width: 84px;
+      text-align: center;
+    }
+
+    .status.active {
+      background: var(--green);
+    }
+
+    .status.stopped {
+      background: var(--slate);
+    }
+
+    .status.out {
+      background: var(--orange);
+    }
+
+    .row-delete-btn {
+      border: none;
+      border-radius: 6px;
+      background: #d9534f;
+      color: #fff;
+      padding: 6px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .row-edit-btn {
+      border: none;
+      border-radius: 6px;
+      background: var(--blue-600);
+      color: #fff;
+      padding: 6px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .row-action-cell {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .row-delete-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .table-foot {
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      color: #6f8197;
+      font-size: 13px;
+      font-weight: 600;
+      background: #fbfcfe;
+      flex-wrap: wrap;
+    }
+
+    .pager {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 37, 72, 0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 50;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal {
+      width: min(760px, 100%);
+      background: #fff;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      box-shadow: 0 16px 36px rgba(18, 35, 59, 0.22);
+      overflow: hidden;
+    }
+
+    .modal-head {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .modal-title {
+      margin: 0;
+      font-size: 18px;
+      color: #223a5d;
+    }
+
+    .modal-close {
+      border: 1px solid #d4dce8;
+      background: #f7f9fc;
+      border-radius: 6px;
+      padding: 4px 9px;
+      cursor: pointer;
+      color: #355071;
+      font-weight: 700;
+    }
+
+    .modal-body {
+      padding: 14px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .form-field {
+      display: grid;
+      gap: 6px;
+    }
+
+    .form-field label {
+      font-size: 13px;
+      color: #4a5f7f;
+      font-weight: 700;
+    }
+
+    .form-field input,
+    .form-field select {
+      width: 100%;
+      border: 1px solid #d8e0eb;
+      border-radius: 7px;
+      padding: 9px 10px;
+      font-size: 14px;
+      color: #2f4668;
+      background: #fff;
+      outline: none;
+    }
+
+    .form-field input[readonly] {
+      background: #f4f7fb;
+      color: #5c708e;
+      font-weight: 700;
+    }
+
+    .form-help {
+      margin: 8px 0 0;
+      color: #72839a;
+      font-size: 12px;
+    }
+
+    .form-message {
+      min-height: 18px;
+      margin: 10px 0 0;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .form-message.error {
+      color: #c54235;
+    }
+
+    .modal-actions {
+      margin-top: 12px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    @media (max-width: 1024px) {
+      .content {
+        padding: 14px;
+      }
+
+      .toolbar {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .btn {
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .topbar {
+        padding: 10px 12px;
+        flex-direction: column;
+        align-items: stretch;
+        width: 100%;
+        max-width: 100%;
+      }
+
+      .brand {
+        justify-content: center;
+      }
+
+      .brand-name {
+        font-size: 22px;
+      }
+
+      .back-btn {
+        width: 100%;
+        text-align: center;
+      }
+
+      .toolbar {
+        grid-template-columns: 1fr;
+      }
+
+      .content {
+        padding: 12px;
+      }
+
+      .page-title {
+        font-size: 26px;
+      }
+
+      .panel-head {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .panel-head h2 {
+        font-size: 18px;
+      }
+
+      table {
+        min-width: 900px;
+      }
+
+      thead th,
+      tbody td {
+        font-size: 12px;
+        padding: 8px;
+      }
+
+      .table-foot {
+        flex-direction: column;
+        align-items: flex-start;
+        font-size: 12px;
+      }
+
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .modal-actions {
+        flex-direction: column;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .topbar {
+        width: 100%;
+        max-width: 100%;
+        padding: 8px 10px;
+      }
+
+      .brand-a {
+        font-size: 28px;
+      }
+
+      .brand-name {
+        font-size: 20px;
+      }
+
+      .page-title {
+        font-size: 23px;
+      }
+
+      .chip {
+        padding: 4px 7px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-a">A</span>
+      <span class="brand-name">BLAN</span>
+    </div>
+    <a class="back-btn" href="index.html">Retour au tableau de bord</a>
+  </header>
+
+  <main class="layout">
+    <section class="content">
+      <h1 class="page-title">Gestion du Stock</h1>
+
+      <section class="toolbar">
+        <div class="search">
+          <input id="searchInput" type="search" placeholder="Rechercher un produit..." aria-label="Rechercher un produit" />
+        </div>
+        <div class="filter">
+          <select id="sortFilter" aria-label="Trier les produits">
+            <option value="id-asc">ID croissant</option>
+            <option value="name-asc">Ordre alphabetique</option>
+          </select>
+        </div>
+        <button id="openProductModalBtn" class="btn add" type="button">Ajouter un Produit</button>
+        <button id="exportPdfBtn" class="btn export" type="button">Exporter</button>
+      </section>
+      <p id="pageMessage" class="page-message"></p>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Vos Produits en Stock</h2>
+          <div class="mini-pagination">
+            <span class="chip">Page 1 sur 5</span>
+            <span class="chip">10</span>
+            <span class="chip">></span>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Nom</th>
+                <th>Quantite par packets</th>
+                <th>Prix d'achat</th>
+                <th>Prix de vente</th>
+                <th>Code TVA (%)</th>
+                <th>Remise</th>
+                <th>Stock min</th>
+                <th>Statut</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="productsBody">
+              <tr>
+                <td colspan="10">Chargement...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="table-foot">
+          <span id="productCountText">Vous avez 0 produits en stock.</span>
+          <div class="pager">
+            <span>Page 1 sur 5</span>
+            <span class="chip">10</span>
+            <span>Suivant</span>
+            <span class="chip">&lt;</span>
+            <span class="chip">></span>
+          </div>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <div id="productModal" class="modal-backdrop" aria-hidden="true">
+    <div class="modal">
+      <div class="modal-head">
+        <h3 id="modalTitle" class="modal-title">Ajouter un produit</h3>
+        <button id="closeProductModalBtn" class="modal-close" type="button">X</button>
+      </div>
+      <div class="modal-body">
+        <form id="productForm" novalidate>
+          <div class="form-grid">
+            <div class="form-field">
+              <label for="generatedId">ID (auto)</label>
+              <input id="generatedId" name="generatedId" type="text" readonly />
+            </div>
+            <div class="form-field">
+              <label for="nom">Nom</label>
+              <input id="nom" name="nom" type="text" required />
+            </div>
+            <div class="form-field">
+              <label for="quantiteParPackets">Quantite par packets</label>
+              <input id="quantiteParPackets" name="quantiteParPackets" type="number" min="0" required />
+            </div>
+            <div class="form-field">
+              <label for="prixAchat">Prix d'achat</label>
+              <input id="prixAchat" name="prixAchat" type="number" min="0" step="0.01" required />
+            </div>
+            <div class="form-field">
+              <label for="prixVente">Prix de vente</label>
+              <input id="prixVente" name="prixVente" type="number" min="0" step="0.01" required />
+            </div>
+            <div class="form-field">
+              <label for="codeTva">Code TVA (%)</label>
+              <input id="codeTva" name="codeTva" type="number" min="0" max="100" step="0.01" required />
+            </div>
+            <div class="form-field">
+              <label for="remise">Remise (%)</label>
+              <input id="remise" name="remise" type="number" min="0" step="0.01" required />
+            </div>
+            <div class="form-field">
+              <label for="stockMin">Stock min (facultatif)</label>
+              <input id="stockMin" name="stockMin" type="number" min="0" />
+            </div>
+            <div class="form-field">
+              <label for="statut">Statut</label>
+              <select id="statut" name="statut" required>
+                <option value="Actif">Actif</option>
+                <option value="Arrete">Arrete</option>
+                <option value="En rupture">En rupture</option>
+              </select>
+            </div>
+          </div>
+          <p class="form-help">L'ID est genere automatiquement avec +1 sur le dernier produit.</p>
+          <p id="formMessage" class="form-message"></p>
+          <div class="modal-actions">
+            <button id="cancelProductModalBtn" class="btn secondary" type="button">Annuler</button>
+            <button id="saveProductBtn" class="btn add" type="submit">Enregistrer</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script defer src="https://www.gstatic.com/firebasejs/12.9.0/firebase-app-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/12.9.0/firebase-auth-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore-compat.js"></script>
+  <script defer src="auth-guard.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+  <script defer>
+    const PRODUCTS_COLLECTION = "produits";
+    const FIREBASE_CONFIG = {
+      projectId: "stock-39779",
+      appId: "1:158388559832:web:b602cacd8029b589c51cad",
+      storageBucket: "stock-39779.firebasestorage.app",
+      apiKey: "AIzaSyDZanRdCzy76lJpXHvAML64QGHjlGV41Lk",
+      authDomain: "stock-39779.firebaseapp.com",
+      messagingSenderId: "158388559832",
+      measurementId: "G-DJY60E2N7R"
+    };
+    let db = null;
+    let cachedProducts = [];
+    let visibleProducts = [];
+    let editingProductDocId = null;
+    let currentUserUid = "";
+
+    const refs = {
+      openModalBtn: document.getElementById("openProductModalBtn"),
+      exportPdfBtn: document.getElementById("exportPdfBtn"),
+      modal: document.getElementById("productModal"),
+      modalTitle: document.getElementById("modalTitle"),
+      closeModalBtn: document.getElementById("closeProductModalBtn"),
+      cancelModalBtn: document.getElementById("cancelProductModalBtn"),
+      form: document.getElementById("productForm"),
+      saveBtn: document.getElementById("saveProductBtn"),
+      generatedId: document.getElementById("generatedId"),
+      formMessage: document.getElementById("formMessage"),
+      pageMessage: document.getElementById("pageMessage"),
+      tableBody: document.getElementById("productsBody"),
+      countText: document.getElementById("productCountText"),
+      searchInput: document.getElementById("searchInput"),
+      sortFilter: document.getElementById("sortFilter")
+    };
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      refs.openModalBtn.disabled = true;
+      refs.exportPdfBtn.disabled = true;
+
+      if (!window.AuthGuard) {
+        window.location.replace("auth.html");
+        return;
+      }
+
+      const isAuthenticated = await window.AuthGuard.ensureAuthenticatedUser();
+      if (!isAuthenticated) {
+        return;
+      }
+
+      if (window.firebase && firebase.auth && firebase.auth().currentUser) {
+        currentUserUid = String(firebase.auth().currentUser.uid || "");
+      }
+      if (!currentUserUid) {
+        showPageMessage("Session utilisateur introuvable. Reconnecte-toi.", "error");
+        return;
+      }
+
+      bindEvents();
+      refs.exportPdfBtn.disabled = false;
+      initFirebaseAndLoad();
+    });
+
+    function bindEvents() {
+      refs.openModalBtn.addEventListener("click", openProductModal);
+      refs.exportPdfBtn.addEventListener("click", exportVisibleProductsPdf);
+      refs.closeModalBtn.addEventListener("click", closeProductModal);
+      refs.cancelModalBtn.addEventListener("click", closeProductModal);
+      refs.modal.addEventListener("click", (event) => {
+        if (event.target === refs.modal) {
+          closeProductModal();
+        }
+      });
+      refs.tableBody.addEventListener("click", onTableBodyClick);
+      refs.form.addEventListener("submit", submitProduct);
+      refs.searchInput.addEventListener("input", applyFilters);
+      refs.sortFilter.addEventListener("change", applyFilters);
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+          closeProductModal();
+        }
+      });
+    }
+
+    function initFirebaseAndLoad() {
+      if (!window.firebase) {
+        showPageMessage("SDK Firebase introuvable. Verifie ta connexion internet.", "error");
+        refs.openModalBtn.disabled = true;
+        refs.tableBody.innerHTML = "<tr><td colspan='10'>Firebase non initialise.</td></tr>";
+        return;
+      }
+
+      try {
+        if (!firebase.apps || firebase.apps.length === 0) {
+          firebase.initializeApp(FIREBASE_CONFIG);
+        }
+        db = firebase.firestore();
+        loadProducts();
+      } catch (error) {
+        showPageMessage("Connexion Firestore impossible: " + getFirebaseErrorText(error), "error");
+        refs.openModalBtn.disabled = true;
+      }
+    }
+
+    async function loadProducts() {
+      try {
+        const snapshot = await db.collection(PRODUCTS_COLLECTION).where("ownerUid", "==", currentUserUid).get();
+        const products = snapshot.docs.map((doc) => mapProduct(doc.id, doc.data()))
+          .sort((a, b) => a.id - b.id);
+        cachedProducts = products;
+        applyFilters();
+        refs.openModalBtn.disabled = false;
+      } catch (error) {
+        refs.openModalBtn.disabled = true;
+        refs.tableBody.innerHTML = "<tr><td colspan='10'>Erreur de chargement des produits.</td></tr>";
+        showPageMessage("Erreur de chargement depuis Firebase: " + getFirebaseErrorText(error), "error");
+      }
+    }
+
+    async function getNextProductId() {
+      if (cachedProducts.length > 0) {
+        const maxCachedId = Math.max(...cachedProducts.map((product) => Number(product.id) || 0));
+        return maxCachedId + 1;
+      }
+      return 1;
+    }
+
+    async function openProductModal() {
+      if (!db) {
+        showPageMessage("Firebase n'est pas pret.", "error");
+        return;
+      }
+
+      try {
+        editingProductDocId = null;
+        refs.form.reset();
+        refs.modalTitle.textContent = "Ajouter un produit";
+        refs.saveBtn.textContent = "Enregistrer";
+        refs.form.statut.value = "Actif";
+        refs.generatedId.value = String(await getNextProductId());
+        refs.formMessage.textContent = "";
+        refs.formMessage.className = "form-message";
+        refs.modal.classList.add("open");
+        refs.modal.setAttribute("aria-hidden", "false");
+      } catch (error) {
+        showPageMessage("Impossible de generer le prochain ID: " + getFirebaseErrorText(error), "error");
+      }
+    }
+
+    function closeProductModal() {
+      refs.modal.classList.remove("open");
+      refs.modal.setAttribute("aria-hidden", "true");
+      editingProductDocId = null;
+      refs.modalTitle.textContent = "Ajouter un produit";
+      refs.saveBtn.textContent = "Enregistrer";
+      refs.formMessage.textContent = "";
+      refs.formMessage.className = "form-message";
+    }
+
+    async function onTableBodyClick(event) {
+      const editBtn = event.target.closest(".row-edit-btn");
+      if (editBtn) {
+        const docId = editBtn.dataset.docid;
+        const product = cachedProducts.find((item) => item.docId === docId);
+        if (!product) {
+          showPageMessage("Produit introuvable pour modification.", "error");
+          return;
+        }
+
+        editingProductDocId = docId;
+        refs.form.reset();
+        refs.modalTitle.textContent = "Modifier un produit";
+        refs.saveBtn.textContent = "Mettre a jour";
+        refs.generatedId.value = String(product.id);
+        refs.form.nom.value = product.nom;
+        refs.form.quantiteParPackets.value = String(product.quantiteParPackets);
+        refs.form.prixAchat.value = String(product.prixAchat);
+        refs.form.prixVente.value = String(product.prixVente);
+        refs.form.codeTva.value = String(product.codeTva);
+        refs.form.remise.value = String(product.remise);
+        refs.form.stockMin.value = product.stockMin === null ? "" : String(product.stockMin);
+        refs.form.statut.value = normalizeStatus(product.statut);
+        refs.formMessage.textContent = "";
+        refs.formMessage.className = "form-message";
+        refs.modal.classList.add("open");
+        refs.modal.setAttribute("aria-hidden", "false");
+        return;
+      }
+
+      const deleteBtn = event.target.closest(".row-delete-btn");
+      if (!deleteBtn) {
+        return;
+      }
+
+      if (!db) {
+        showPageMessage("Firebase n'est pas pret.", "error");
+        return;
+      }
+
+      const docId = deleteBtn.dataset.docid;
+      if (!docId) {
+        showPageMessage("Impossible de supprimer: identifiant introuvable.", "error");
+        return;
+      }
+
+      if (!window.confirm("Supprimer ce produit ?")) {
+        return;
+      }
+
+      deleteBtn.disabled = true;
+      const originalLabel = deleteBtn.textContent;
+      deleteBtn.textContent = "Suppression...";
+
+      try {
+        await db.collection(PRODUCTS_COLLECTION).doc(docId).delete();
+        showPageMessage("Produit supprime.", "success");
+        await loadProducts();
+      } catch (error) {
+        showPageMessage("Echec suppression: " + getFirebaseErrorText(error), "error");
+      } finally {
+        deleteBtn.disabled = false;
+        deleteBtn.textContent = originalLabel;
+      }
+    }
+
+    async function submitProduct(event) {
+      event.preventDefault();
+
+      if (!db) {
+        setFormMessage("Firebase n'est pas pret.", "error");
+        return;
+      }
+
+      const nom = refs.form.nom.value.trim();
+      const quantiteParPackets = Number(refs.form.quantiteParPackets.value);
+      const prixAchat = Number(refs.form.prixAchat.value);
+      const prixVente = Number(refs.form.prixVente.value);
+      const codeTva = Number(refs.form.codeTva.value);
+      const remise = Number(refs.form.remise.value);
+      const stockMinRaw = refs.form.stockMin.value.trim();
+      const statut = refs.form.statut.value;
+
+      if (!nom || !Number.isFinite(codeTva) || !Number.isFinite(quantiteParPackets) || !Number.isFinite(prixAchat) || !Number.isFinite(prixVente) || !Number.isFinite(remise)) {
+        setFormMessage("Merci de remplir tous les champs obligatoires.", "error");
+        return;
+      }
+
+      if (quantiteParPackets < 0 || prixAchat < 0 || prixVente < 0 || codeTva < 0 || codeTva > 100 || remise < 0) {
+        setFormMessage("Verifie les valeurs numeriques saisies.", "error");
+        return;
+      }
+
+      let stockMin = null;
+      if (stockMinRaw !== "") {
+        const parsedStockMin = Number(stockMinRaw);
+        if (!Number.isFinite(parsedStockMin) || parsedStockMin < 0) {
+          setFormMessage("Stock min doit etre vide ou un nombre positif.", "error");
+          return;
+        }
+        stockMin = parsedStockMin;
+      }
+
+      refs.saveBtn.disabled = true;
+      refs.saveBtn.textContent = "Enregistrement...";
+
+      try {
+        const idValue = Number(refs.generatedId.value);
+        const basePayload = {
+          id: Number.isFinite(idValue) && idValue > 0 ? idValue : await getNextProductId(),
+          ownerUid: currentUserUid,
+          nom,
+          quantiteParPackets,
+          prixAchat,
+          prixVente,
+          codeTva,
+          remise,
+          stockMin,
+          statut: normalizeStatus(statut)
+        };
+
+        if (editingProductDocId) {
+          await db.collection(PRODUCTS_COLLECTION).doc(editingProductDocId).update({
+            ...basePayload,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+          closeProductModal();
+          await loadProducts();
+          showPageMessage("Produit mis a jour.", "success");
+          return;
+        }
+
+        const createPayload = {
+          ...basePayload,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        };
+
+        await db.collection(PRODUCTS_COLLECTION).add(createPayload);
+        closeProductModal();
+        await loadProducts();
+        showPageMessage("Produit enregistre dans Firebase.", "success");
+      } catch (error) {
+        setFormMessage("Echec de sauvegarde dans Firebase: " + getFirebaseErrorText(error), "error");
+      } finally {
+        refs.saveBtn.disabled = false;
+        refs.saveBtn.textContent = editingProductDocId ? "Mettre a jour" : "Enregistrer";
+      }
+    }
+
+    function mapProduct(docId, data) {
+      return {
+        docId: String(docId || ""),
+        id: Number(data.id) || 0,
+        ownerUid: String(data.ownerUid || ""),
+        nom: String(data.nom || ""),
+        quantiteParPackets: Number(data.quantiteParPackets) || 0,
+        prixAchat: Number(data.prixAchat) || 0,
+        prixVente: Number(data.prixVente) || 0,
+        codeTva: normalizePercent(data.codeTva),
+        remise: Number(data.remise) || 0,
+        stockMin: data.stockMin === null || data.stockMin === undefined || data.stockMin === "" ? null : Number(data.stockMin),
+        statut: normalizeStatus(data.statut)
+      };
+    }
+
+    function applyFilters() {
+      const searchValue = normalizeSearchText(refs.searchInput.value);
+      const sortValue = refs.sortFilter.value;
+      const productsToDisplay = [...cachedProducts];
+
+      if (searchValue !== "") {
+        productsToDisplay.sort((a, b) => {
+          const scoreA = getSearchScore(searchValue, a);
+          const scoreB = getSearchScore(searchValue, b);
+          if (scoreA !== scoreB) {
+            return scoreA - scoreB;
+          }
+          return compareProductsBySort(a, b, sortValue);
+        });
+      } else {
+        productsToDisplay.sort((a, b) => compareProductsBySort(a, b, sortValue));
+      }
+
+      renderProducts(productsToDisplay);
+    }
+
+    function compareProductsBySort(a, b, sortValue) {
+      if (sortValue === "name-asc") {
+        const byName = a.nom.localeCompare(b.nom, "fr", { sensitivity: "base" });
+        if (byName !== 0) {
+          return byName;
+        }
+      }
+      return a.id - b.id;
+    }
+
+    function getSearchScore(searchValue, product) {
+      const normalizedName = normalizeSearchText(product.nom);
+      const normalizedId = normalizeSearchText(String(product.id));
+
+      if (normalizedName === searchValue || normalizedId === searchValue) {
+        return 0;
+      }
+      if (normalizedName.startsWith(searchValue)) {
+        return 0.05;
+      }
+      if (normalizedName.includes(searchValue)) {
+        return 0.1;
+      }
+      if (normalizedId.startsWith(searchValue)) {
+        return 0.12;
+      }
+      if (normalizedId.includes(searchValue)) {
+        return 0.18;
+      }
+
+      const nameDistance = levenshteinDistance(searchValue, normalizedName);
+      const idDistance = levenshteinDistance(searchValue, normalizedId);
+      const nameRatio = nameDistance / Math.max(searchValue.length, normalizedName.length, 1);
+      const idRatio = idDistance / Math.max(searchValue.length, normalizedId.length, 1);
+
+      return Math.min(nameRatio, idRatio) + 0.2;
+    }
+
+    function normalizeSearchText(value) {
+      return String(value || "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .trim();
+    }
+
+    function levenshteinDistance(left, right) {
+      if (left === right) {
+        return 0;
+      }
+      if (left.length === 0) {
+        return right.length;
+      }
+      if (right.length === 0) {
+        return left.length;
+      }
+
+      const previousRow = [];
+      for (let j = 0; j <= right.length; j += 1) {
+        previousRow[j] = j;
+      }
+
+      for (let i = 1; i <= left.length; i += 1) {
+        const currentRow = [i];
+        for (let j = 1; j <= right.length; j += 1) {
+          const substitutionCost = left[i - 1] === right[j - 1] ? 0 : 1;
+          const deleteCost = previousRow[j] + 1;
+          const insertCost = currentRow[j - 1] + 1;
+          const substituteCost = previousRow[j - 1] + substitutionCost;
+          currentRow[j] = Math.min(deleteCost, insertCost, substituteCost);
+        }
+        for (let j = 0; j <= right.length; j += 1) {
+          previousRow[j] = currentRow[j];
+        }
+      }
+
+      return previousRow[right.length];
+    }
+
+    function renderProducts(products) {
+      visibleProducts = [...products];
+      refs.countText.textContent = "Vous avez " + products.length + " produits en stock.";
+
+      if (products.length === 0) {
+        refs.tableBody.innerHTML = "<tr><td colspan='10'>Aucun produit en stock.</td></tr>";
+        return;
+      }
+
+      refs.tableBody.innerHTML = products.map((product) => {
+        const statusClass = getStatusClass(product.statut);
+        return "<tr>" +
+          "<td class='id'>#" + escapeHtml(String(product.id)) + "</td>" +
+          "<td>" + escapeHtml(product.nom) + "</td>" +
+          "<td>" + escapeHtml(String(product.quantiteParPackets)) + "</td>" +
+          "<td>" + escapeHtml(formatMoney(product.prixAchat)) + "</td>" +
+          "<td>" + escapeHtml(formatMoney(product.prixVente)) + "</td>" +
+          "<td>" + escapeHtml(String(product.codeTva)) + "%</td>" +
+          "<td>" + escapeHtml(String(product.remise)) + "%</td>" +
+          "<td>" + (product.stockMin === null ? "-" : escapeHtml(String(product.stockMin))) + "</td>" +
+          "<td><span class='status " + statusClass + "'>" + escapeHtml(product.statut) + "</span></td>" +
+          "<td><div class='row-action-cell'>" +
+            "<button type='button' class='row-edit-btn' data-docid='" + escapeHtml(product.docId) + "'>Modifier</button>" +
+            "<button type='button' class='row-delete-btn' data-docid='" + escapeHtml(product.docId) + "'>Supprimer</button>" +
+          "</div></td>" +
+        "</tr>";
+      }).join("");
+    }
+
+    function exportVisibleProductsPdf() {
+      if (!window.jspdf || !window.jspdf.jsPDF) {
+        showPageMessage("Export PDF indisponible: librairie jsPDF non chargee.", "error");
+        return;
+      }
+
+      if (!Array.isArray(visibleProducts) || visibleProducts.length === 0) {
+        showPageMessage("Aucun produit a exporter.", "error");
+        return;
+      }
+
+      const jsPDF = window.jspdf.jsPDF;
+      const doc = new jsPDF({ orientation: "landscape", unit: "pt", format: "a4" });
+      const now = new Date();
+      const generatedAt = now.toLocaleString("fr-FR");
+
+      doc.setFontSize(14);
+      doc.text("Liste des produits", 32, 30);
+      doc.setFontSize(10);
+      doc.text("Genere le " + generatedAt, 32, 46);
+
+      if (typeof doc.autoTable !== "function") {
+        showPageMessage("Export PDF indisponible: plugin AutoTable non charge.", "error");
+        return;
+      }
+
+      doc.autoTable({
+        startY: 58,
+        margin: { left: 24, right: 24 },
+        head: [[
+          "ID",
+          "Nom",
+          "Quantite",
+          "Prix achat",
+          "Prix vente",
+          "TVA (%)",
+          "Remise (%)",
+          "Stock min",
+          "Statut"
+        ]],
+        body: visibleProducts.map((product) => [
+          "#" + String(product.id),
+          product.nom,
+          String(product.quantiteParPackets),
+          formatMoney(product.prixAchat),
+          formatMoney(product.prixVente),
+          String(product.codeTva),
+          String(product.remise),
+          product.stockMin === null ? "-" : String(product.stockMin),
+          product.statut
+        ]),
+        styles: { fontSize: 8, cellPadding: 5, overflow: "linebreak" },
+        headStyles: { fillColor: [47, 79, 126] },
+        theme: "grid"
+      });
+
+      const filename = "produits-" +
+        now.getFullYear() +
+        String(now.getMonth() + 1).padStart(2, "0") +
+        String(now.getDate()).padStart(2, "0") + "-" +
+        String(now.getHours()).padStart(2, "0") +
+        String(now.getMinutes()).padStart(2, "0") +
+        ".pdf";
+      doc.save(filename);
+      showPageMessage("PDF exporte avec succes.", "success");
+    }
+
+    function getStatusClass(statut) {
+      const status = normalizeStatus(statut).toLowerCase();
+      if (status === "en rupture") {
+        return "out";
+      }
+      if (status === "arrete") {
+        return "stopped";
+      }
+      return "active";
+    }
+
+    function normalizeStatus(rawStatus) {
+      const value = String(rawStatus || "").trim().toLowerCase();
+      if (value === "en ligne" || value === "actif") {
+        return "Actif";
+      }
+      if (value === "epuise" || value === "en rupture") {
+        return "En rupture";
+      }
+      if (value === "arrete" || value === "arrête") {
+        return "Arrete";
+      }
+      return "Actif";
+    }
+
+    function normalizePercent(rawValue) {
+      if (typeof rawValue === "number" && Number.isFinite(rawValue)) {
+        return rawValue;
+      }
+      const match = String(rawValue || "").replace(",", ".").match(/-?\\d+(\\.\\d+)?/);
+      if (!match) {
+        return 0;
+      }
+      const parsed = Number(match[0]);
+      return Number.isFinite(parsed) ? parsed : 0;
+    }
+
+    function formatMoney(value) {
+      const numberValue = Number(value);
+      if (!Number.isFinite(numberValue)) {
+        return "DH 0";
+      }
+      return "DH " + numberValue.toLocaleString("fr-FR");
+    }
+
+    function showPageMessage(text, type) {
+      refs.pageMessage.textContent = text;
+      refs.pageMessage.className = "page-message " + (type || "");
+    }
+
+    function setFormMessage(text, type) {
+      refs.formMessage.textContent = text;
+      refs.formMessage.className = "form-message " + (type || "");
+    }
+
+    function getFirebaseErrorText(error) {
+      const code = error && error.code ? String(error.code) : "";
+      const message = error && error.message ? String(error.message) : "";
+      if (code) {
+        return code;
+      }
+      if (message) {
+        return message;
+      }
+      return "Erreur inconnue";
+    }
+
+    function escapeHtml(input) {
+      return String(input)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+  </script>
+</body>
+</html>

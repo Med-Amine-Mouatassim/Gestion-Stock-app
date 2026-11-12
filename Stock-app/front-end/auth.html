@@ -1,0 +1,479 @@
+﻿<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <title>Authentification Vendeur</title>
+  <style>
+    :root {
+      --bg-1: #f4f8ff;
+      --bg-2: #dfeeff;
+      --card: #ffffff;
+      --text: #10243e;
+      --muted: #5f738c;
+      --primary: #1b6cff;
+      --primary-2: #0f52cc;
+      --danger: #d32f2f;
+      --ok: #1b8b42;
+      --border: #d6e4f7;
+      --shadow: 0 18px 50px rgba(20, 40, 80, 0.12);
+      --radius: 18px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: radial-gradient(circle at top left, var(--bg-2), var(--bg-1) 55%);
+      color: var(--text);
+      padding: 24px;
+    }
+
+    .auth-card {
+      width: min(420px, 100%);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 28px;
+    }
+
+    .title {
+      font-size: 1.4rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 0.95rem;
+      margin-bottom: 22px;
+      line-height: 1.4;
+    }
+
+    .field {
+      margin-bottom: 14px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.88rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    input {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s ease;
+    }
+
+    input:focus {
+      border-color: var(--primary);
+    }
+
+    button {
+      width: 100%;
+      border: none;
+      border-radius: 12px;
+      padding: 12px 14px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-2));
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.15s ease, opacity 0.15s ease;
+      margin-top: 8px;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      opacity: 0.95;
+    }
+
+    .message {
+      min-height: 22px;
+      margin-top: 14px;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .message.error {
+      color: var(--danger);
+    }
+
+    .message.success {
+      color: var(--ok);
+    }
+
+    .hint {
+      margin-top: 14px;
+      padding: 10px 12px;
+      border: 1px dashed var(--border);
+      border-radius: 10px;
+      color: var(--muted);
+      font-size: 0.82rem;
+      line-height: 1.35;
+    }
+
+    .divider {
+      margin: 18px 0 14px;
+      border-top: 1px solid var(--border);
+      position: relative;
+      text-align: center;
+    }
+
+    .divider span {
+      position: relative;
+      top: -11px;
+      background: #fff;
+      padding: 0 10px;
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+
+    .ambillon-box {
+      margin-top: 2px;
+      border: 1px solid var(--border);
+      background: #f9fbff;
+      border-radius: 12px;
+      padding: 12px;
+    }
+
+    .ambillon-title {
+      font-size: 0.92rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: #20416d;
+    }
+
+    .ambillon-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .ambillon-row input {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .ambillon-row button {
+      width: auto;
+      margin-top: 0;
+      white-space: nowrap;
+      padding: 12px 16px;
+    }
+
+    .ambillon-message {
+      min-height: 20px;
+      margin-top: 8px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--muted);
+    }
+
+    .ambillon-message.error {
+      color: var(--danger);
+    }
+
+    .ambillon-message.success {
+      color: var(--ok);
+    }
+  </style>
+
+  <script defer src="https://www.gstatic.com/firebasejs/12.9.0/firebase-app-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/12.9.0/firebase-auth-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+  <main class="auth-card">
+    <h1 class="title">Connexion Vendeur</h1>
+    <p class="subtitle">Connexion vendeur ou acces direct a bon.html via code ID ambillon.</p>
+
+    <form id="authForm" novalidate>
+      <div class="field">
+        <label for="email">Email</label>
+        <input id="email" name="email" type="email" autocomplete="username" required />
+      </div>
+
+      <div class="field">
+        <label for="password">Mot de passe</label>
+        <input id="password" name="password" type="password" autocomplete="current-password" required />
+      </div>
+
+      <button type="submit">Se connecter</button>
+      <p id="message" class="message"></p>
+    </form>
+
+    <div class="divider"><span>ou</span></div>
+
+    <section class="ambillon-box">
+      <p class="ambillon-title">Acces Ambillon par ID</p>
+      <form id="ambillonForm" novalidate>
+        <div class="ambillon-row">
+          <input id="ambillonId" name="ambillonId" type="text" placeholder="Entrer ID ambillon" required />
+          <button id="ambillonBtn" type="submit">Ambillon</button>
+        </div>
+      </form>
+      <p id="ambillonMessage" class="ambillon-message"></p>
+    </section>
+
+    <p class="hint">
+      Cree tes comptes dans Firebase Console > Authentication > Users.
+    </p>
+  </main>
+
+  <script defer>
+    const FIREBASE_CONFIG = {
+      projectId: "stock-39779",
+      appId: "1:158388559832:web:b602cacd8029b589c51cad",
+      storageBucket: "stock-39779.firebasestorage.app",
+      apiKey: "AIzaSyDZanRdCzy76lJpXHvAML64QGHjlGV41Lk",
+      authDomain: "stock-39779.firebaseapp.com",
+      messagingSenderId: "158388559832",
+      measurementId: "G-DJY60E2N7R"
+    };
+    const form = document.getElementById("authForm");
+    const messageEl = document.getElementById("message");
+    const ambillonForm = document.getElementById("ambillonForm");
+    const ambillonButton = document.getElementById("ambillonBtn");
+    const ambillonMessageEl = document.getElementById("ambillonMessage");
+    const redirectTarget = getSafeRedirectTarget();
+    const requiresAmbillonStep = String(redirectTarget || "").toLowerCase().startsWith("bon.html");
+    const AMBILLONS_COLLECTION = "ambillons";
+    const AMBILLON_ACCESS_COLLECTION = "ambillon_access";
+    let db = null;
+
+    document.addEventListener("DOMContentLoaded", () => {
+      if (!window.firebase) {
+        showMessage("SDK Firebase introuvable. Verifie ta connexion internet.", "error");
+        return;
+      }
+
+      if (!firebase.apps || firebase.apps.length === 0) {
+        firebase.initializeApp(FIREBASE_CONFIG);
+      }
+
+      const auth = firebase.auth();
+      db = firebase.firestore();
+
+      auth.onAuthStateChanged((user) => {
+        if (user && !user.isAnonymous && !requiresAmbillonStep) {
+          redirectAfterLogin();
+        }
+      });
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        const email = form.email.value.trim();
+        const password = form.password.value;
+
+        if (!email || !password) {
+          showMessage("Remplis tous les champs.", "error");
+          return;
+        }
+
+        try {
+          const cred = await auth.signInWithEmailAndPassword(email, password);
+          localStorage.setItem("auth_user", JSON.stringify({
+            uid: cred.user.uid,
+            email: cred.user.email
+          }));
+          showMessage("Connexion reussie.", "success");
+          if (requiresAmbillonStep) {
+            showAmbillonMessage("Connexion reussie. Saisis maintenant l'ID ambillon.", "success");
+          } else {
+            setTimeout(() => {
+              redirectAfterLogin();
+            }, 400);
+          }
+        } catch (error) {
+          showMessage(mapAuthError(error && error.code), "error");
+        }
+      });
+
+      ambillonForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const inputId = normalizeAmbillonId(ambillonForm.ambillonId.value);
+        if (!inputId) {
+          showAmbillonMessage("Saisis un ID ambillon valide.", "error");
+          return;
+        }
+
+        if (!db) {
+          showAmbillonMessage("Firestore indisponible. Reessaie plus tard.", "error");
+          return;
+        }
+
+        ambillonButton.disabled = true;
+        ambillonButton.textContent = "Verification...";
+
+        try {
+          const doc = await db.collection(AMBILLONS_COLLECTION).doc(inputId).get();
+          if (!doc.exists) {
+            showAmbillonMessage("ID ambillon introuvable.", "error");
+            return;
+          }
+
+          const data = doc.data() || {};
+          const ownerUid = String(data.ownerUid || "");
+          if (!ownerUid) {
+            showAmbillonMessage("ID ambillon invalide (owner introuvable).", "error");
+            return;
+          }
+
+          let activeUser = auth.currentUser;
+          if (!activeUser || !activeUser.isAnonymous) {
+            if (activeUser && !activeUser.isAnonymous) {
+              await auth.signOut();
+            }
+            const anonCredential = await auth.signInAnonymously();
+            activeUser = anonCredential && anonCredential.user ? anonCredential.user : null;
+          }
+          if (!activeUser) {
+            showAmbillonMessage("Impossible de demarrer la session ambillon.", "error");
+            return;
+          }
+
+          await db.collection(AMBILLON_ACCESS_COLLECTION).doc(String(activeUser.uid)).set({
+            ownerUid: ownerUid,
+            ambillonId: inputId,
+            ambillonNom: String(data.nom || ""),
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+            grantedAt: firebase.firestore.FieldValue.serverTimestamp()
+          }, { merge: true });
+
+          try {
+            sessionStorage.setItem("ambillon_session", JSON.stringify({
+              id: inputId,
+              nom: String(data.nom || ""),
+              ownerUid: ownerUid,
+              at: Date.now()
+            }));
+          } catch (storageError) {
+            showAmbillonMessage("Impossible d'ouvrir la session ambillon.", "error");
+            return;
+          }
+
+          showAmbillonMessage("Acces autorise. Redirection...", "success");
+          setTimeout(() => {
+            window.location.replace("bon.html");
+          }, 250);
+        } catch (error) {
+          const code = error && error.code ? String(error.code) : "";
+          const message = error && error.message ? String(error.message) : "";
+          if (code === "permission-denied") {
+            showAmbillonMessage("Acces refuse. Verifie les regles Firestore.", "error");
+            return;
+          }
+          if (
+            code === "auth/operation-not-allowed" ||
+            code === "auth/admin-restricted-operation" ||
+            code === "auth/configuration-not-found"
+          ) {
+            showAmbillonMessage("Active l'authentification anonyme dans Firebase Authentication.", "error");
+            return;
+          }
+          if (code === "auth/network-request-failed") {
+            showAmbillonMessage("Erreur reseau. Verifie ta connexion internet.", "error");
+            return;
+          }
+          if (code === "auth/invalid-api-key") {
+            showAmbillonMessage("Configuration Firebase invalide (API key).", "error");
+            return;
+          }
+          if (code) {
+            showAmbillonMessage("Verification impossible (" + code + ").", "error");
+            return;
+          }
+          if (message) {
+            showAmbillonMessage("Verification impossible: " + message, "error");
+            return;
+          }
+          showAmbillonMessage("Verification impossible. Reessaie.", "error");
+        } finally {
+          ambillonButton.disabled = false;
+          ambillonButton.textContent = "Ambillon";
+        }
+      });
+    });
+
+    function showMessage(text, type) {
+      messageEl.textContent = text;
+      messageEl.className = `message ${type}`;
+    }
+
+    function showAmbillonMessage(text, type) {
+      ambillonMessageEl.textContent = text;
+      ambillonMessageEl.className = `ambillon-message ${type}`;
+    }
+
+    function redirectAfterLogin() {
+      window.location.replace(redirectTarget);
+    }
+
+    function getSafeRedirectTarget() {
+      const params = new URLSearchParams(window.location.search);
+      const rawTarget = params.get("redirect");
+      if (!rawTarget) {
+        return "index.html";
+      }
+
+      const candidate = String(rawTarget).trim();
+      const isUnsafe = candidate === "" ||
+        candidate.includes("://") ||
+        candidate.startsWith("//") ||
+        candidate.startsWith("/") ||
+        !/^[a-zA-Z0-9._\-/?#=&%+]*$/.test(candidate);
+      if (isUnsafe) {
+        return "index.html";
+      }
+      if (candidate.toLowerCase().startsWith("auth.html")) {
+        return "index.html";
+      }
+      return candidate;
+    }
+
+    function normalizeAmbillonId(value) {
+      return String(value || "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toUpperCase()
+        .trim()
+        .replace(/\s+/g, "-")
+        .replace(/[^A-Z0-9_-]/g, "");
+    }
+
+    function mapAuthError(code) {
+      switch (code) {
+        case "auth/invalid-email":
+          return "Email invalide.";
+        case "auth/user-not-found":
+          return "Utilisateur introuvable.";
+        case "auth/wrong-password":
+          return "Mot de passe incorrect.";
+        case "auth/invalid-credential":
+          return "Identifiants invalides.";
+        case "auth/too-many-requests":
+          return "Trop de tentatives. Reessaie plus tard.";
+        default:
+          return "Connexion impossible. Verifie Firebase Authentication.";
+      }
+    }
+  </script>
+</body>
+</html>

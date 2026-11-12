@@ -1,0 +1,2123 @@
+﻿<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Creer un Bon de Commande</title>
+  <style>
+    :root {
+      --bg-top: #c4c8cf;
+      --bg-bottom: #aeb4bf;
+      --shell: #d6d9df;
+      --shell-line: #bbc1cc;
+      --panel: #ffffff;
+      --line: #d9dde5;
+      --title: #333a46;
+      --muted: #6f7785;
+      --blue-700: #1f4f9f;
+      --blue-600: #2f65bb;
+      --blue-500: #3d76cd;
+      --check: #2c66bb;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      height: 100%;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      color: var(--title);
+      background:
+        radial-gradient(circle at 18% 12%, rgba(255, 255, 255, 0.28), transparent 34%),
+        radial-gradient(circle at 84% 86%, rgba(255, 255, 255, 0.2), transparent 38%),
+        linear-gradient(180deg, var(--bg-top), var(--bg-bottom));
+      padding: clamp(8px, 1vw, 18px);
+    }
+
+    .shell {
+      max-width: 1280px;
+      margin: 0 auto;
+      min-height: calc(100vh - 2 * clamp(8px, 1vw, 18px));
+      border: 1px solid var(--shell-line);
+      border-radius: 10px;
+      overflow: hidden;
+      background: linear-gradient(180deg, #d7dbe1 0%, #d2d7de 100%);
+      box-shadow: 0 20px 36px rgba(30, 39, 58, 0.2);
+    }
+
+    .page-head {
+      background: linear-gradient(90deg, #184385 0%, #285aa9 40%, #24559f 100%);
+      color: #98a8c6;
+      text-align: center;
+      font-size: clamp(1.45rem, 3.1vw, 3rem);
+      font-weight: 800;
+      line-height: 1.1;
+      padding: clamp(14px, 2.2vw, 24px) 16px;
+      letter-spacing: 0.2px;
+    }
+
+    .workspace {
+      padding: clamp(18px, 3.4vw, 34px) clamp(12px, 2.2vw, 28px) clamp(22px, 3vw, 34px);
+      border-top: 1px solid rgba(186, 191, 201, 0.55);
+    }
+
+    .modal {
+      width: min(100%, 860px);
+      margin: 0 auto;
+      background: var(--panel);
+      border: 1px solid #d3d8e2;
+      border-radius: 8px;
+      box-shadow: 0 14px 30px rgba(29, 38, 56, 0.23);
+      overflow: hidden;
+    }
+
+    .modal-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: clamp(12px, 2vw, 22px) clamp(14px, 2.4vw, 28px);
+      border-bottom: 1px solid #dce1ea;
+      background: #fcfcfd;
+    }
+
+    .modal-head h1 {
+      margin: 0;
+      font-size: clamp(1.35rem, 2.6vw, 2.25rem);
+      font-weight: 750;
+      color: #2e3440;
+      line-height: 1.2;
+    }
+
+    .close-btn {
+      border: none;
+      background: none;
+      color: #828c9b;
+      font-size: clamp(1.8rem, 3vw, 2.7rem);
+      line-height: 1;
+      cursor: pointer;
+      padding: 0;
+      width: clamp(34px, 4vw, 48px);
+      height: clamp(34px, 4vw, 48px);
+    }
+
+    .close-btn:hover {
+      color: #6d7684;
+    }
+
+    .modal-body {
+      padding: clamp(14px, 2.4vw, 28px) clamp(14px, 2.4vw, 28px) clamp(16px, 2.4vw, 28px);
+      overflow-x: hidden;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(180px, 240px);
+      gap: 12px 14px;
+      align-items: end;
+    }
+
+    .field {
+      min-width: 0;
+    }
+
+    .field-label {
+      display: block;
+      margin: 0 0 8px;
+      font-size: clamp(1.2rem, 2vw, 1.8rem);
+      font-weight: 750;
+      color: #313744;
+    }
+
+    .client-input {
+      width: 100%;
+      height: clamp(44px, 4.8vw, 56px);
+      border: 2px solid #d5dae3;
+      border-radius: 7px;
+      padding: 0 14px;
+      font-size: clamp(1rem, 1.5vw, 1.2rem);
+      color: #344055;
+      background: #fff;
+      outline: none;
+    }
+
+    .date-input {
+      width: 100%;
+      height: clamp(44px, 4.8vw, 56px);
+      border: 2px solid #d5dae3;
+      border-radius: 7px;
+      padding: 0 10px;
+      font-size: clamp(1rem, 1.5vw, 1.1rem);
+      color: #344055;
+      background: #fff;
+      outline: none;
+    }
+
+    .client-input::placeholder {
+      color: #9ca4b2;
+    }
+
+    .client-input:focus,
+    .date-input:focus {
+      border-color: #7f96be;
+      box-shadow: 0 0 0 3px rgba(47, 101, 187, 0.13);
+    }
+
+    .products-title {
+      margin: clamp(16px, 2.1vw, 24px) 0 clamp(8px, 1.2vw, 14px);
+      font-size: clamp(1.25rem, 2.1vw, 1.9rem);
+      font-weight: 750;
+      color: #313744;
+    }
+
+    .products-search {
+      margin: 0 0 10px;
+    }
+
+    .products-filter-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(220px, 280px);
+      gap: 8px;
+      align-items: center;
+    }
+
+    .products-search-input {
+      width: 100%;
+      height: clamp(40px, 4.4vw, 50px);
+      border: 2px solid #d5dae3;
+      border-radius: 7px;
+      padding: 0 12px;
+      font-size: clamp(0.95rem, 1.4vw, 1.05rem);
+      color: #344055;
+      background: #fff;
+      outline: none;
+    }
+
+    .products-search-input:focus {
+      border-color: #7f96be;
+      box-shadow: 0 0 0 3px rgba(47, 101, 187, 0.13);
+    }
+
+    .products-sort-select {
+      width: 100%;
+      height: clamp(40px, 4.4vw, 50px);
+      border: 2px solid #d5dae3;
+      border-radius: 7px;
+      padding: 0 10px;
+      font-size: clamp(0.9rem, 1.25vw, 1rem);
+      color: #344055;
+      background: #fff;
+      outline: none;
+    }
+
+    .products-sort-select:focus {
+      border-color: #7f96be;
+      box-shadow: 0 0 0 3px rgba(47, 101, 187, 0.13);
+    }
+
+    .products-search-feedback {
+      min-height: 18px;
+      margin: 6px 0 10px;
+      font-size: 0.86rem;
+      font-weight: 700;
+      color: #687385;
+    }
+
+    .products-pagination {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin: 0 0 10px;
+      flex-wrap: wrap;
+    }
+
+    .products-page-btn {
+      border: none;
+      border-radius: 7px;
+      min-height: 34px;
+      padding: 0 12px;
+      background: linear-gradient(90deg, #2a5dab, #1f4f9f);
+      color: #fff;
+      font-size: 0.84rem;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .products-page-btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+      filter: none;
+    }
+
+    .products-page-info {
+      font-size: 0.86rem;
+      font-weight: 700;
+      color: #566179;
+      white-space: nowrap;
+    }
+
+    .products {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: clamp(10px, 1.3vw, 16px);
+    }
+
+    .product-batch {
+      list-style: none;
+      border: 1px solid #d8dde6;
+      border-radius: 8px;
+      background: #f9fbff;
+      padding: 10px;
+    }
+
+    .product-batch-title {
+      margin: 0 0 8px;
+      font-size: 0.9rem;
+      font-weight: 750;
+      color: #4a5770;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .products-numbered-list {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: clamp(10px, 1.3vw, 16px);
+    }
+
+    .product-empty {
+      list-style: none;
+      border: 1px dashed #c8cfdb;
+      border-radius: 8px;
+      background: #f7f9fc;
+      padding: 12px;
+      color: #566179;
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+
+    .product {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: clamp(10px, 1.4vw, 14px);
+      align-items: center;
+    }
+
+    .product-main {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+      font-size: clamp(1rem, 1.9vw, 1.45rem);
+      color: #363f4e;
+      font-weight: 500;
+      line-height: 1.35;
+    }
+
+    .product-order-index {
+      width: 30px;
+      min-height: 30px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: #eaf0fb;
+      border: 1px solid #d3dbee;
+      color: #2f4f7e;
+      font-size: 0.82rem;
+      font-weight: 800;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+
+    .product-main input[type="checkbox"] {
+      width: clamp(18px, 2.3vw, 24px);
+      height: clamp(18px, 2.3vw, 24px);
+      accent-color: var(--check);
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+
+    .product-main span {
+      white-space: normal;
+      overflow-wrap: anywhere;
+    }
+
+    .product-tools {
+      display: inline-flex;
+      align-items: center;
+      gap: clamp(8px, 1vw, 14px);
+      flex-shrink: 0;
+      flex-wrap: wrap;
+    }
+
+    .qty {
+      display: inline-flex;
+      align-items: stretch;
+      border: 2px solid #d3d8e2;
+      border-radius: 7px;
+      overflow: hidden;
+      background: #fff;
+    }
+
+    .qty-input {
+      width: clamp(66px, 7.2vw, 84px);
+      min-height: clamp(34px, 4.5vw, 46px);
+      border: none;
+      background: #fff;
+      color: #4f5867;
+      font-weight: 600;
+      font-size: clamp(0.95rem, 1.4vw, 1.1rem);
+      text-align: center;
+      padding: 0 6px;
+      outline: none;
+    }
+
+    .qty-input:focus {
+      box-shadow: inset 0 0 0 2px rgba(47, 101, 187, 0.18);
+    }
+
+    .remove-btn {
+      border: none;
+      background: transparent;
+      color: #818b99;
+      font-size: clamp(1.5rem, 2.6vw, 2rem);
+      line-height: 1;
+      width: clamp(30px, 3vw, 40px);
+      height: clamp(30px, 3vw, 40px);
+      cursor: pointer;
+      padding: 0;
+    }
+
+    .remove-btn:hover {
+      color: #646f7f;
+    }
+
+    .create-btn {
+      margin-top: clamp(16px, 2vw, 24px);
+      width: 100%;
+      min-height: clamp(46px, 4.8vw, 58px);
+      border: none;
+      border-radius: 8px;
+      background: linear-gradient(90deg, var(--blue-600) 0%, var(--blue-700) 50%, var(--blue-600) 100%);
+      color: #ffffff;
+      font-size: clamp(1.1rem, 2vw, 1.7rem);
+      font-weight: 720;
+      cursor: pointer;
+      letter-spacing: 0.2px;
+    }
+
+    .create-btn:hover {
+      filter: brightness(1.04);
+    }
+
+    .separator {
+      border: none;
+      border-top: 1px solid #dce1ea;
+      margin: clamp(18px, 2.2vw, 28px) 0;
+    }
+
+    .summary {
+      border: 2px solid #d8dde6;
+      border-radius: 8px;
+      background: #fdfdfd;
+      overflow: hidden;
+    }
+
+    .summary-head {
+      margin: 0;
+      padding: clamp(10px, 1.5vw, 16px) clamp(12px, 1.8vw, 18px);
+      font-size: clamp(1.15rem, 2vw, 1.7rem);
+      font-weight: 750;
+      color: #353c49;
+      border-bottom: 1px solid #dce1ea;
+      background: #f5f7fa;
+    }
+
+    .summary-body {
+      min-height: clamp(62px, 8vw, 96px);
+      padding: clamp(10px, 1.6vw, 16px) clamp(12px, 1.8vw, 18px);
+      font-size: clamp(0.95rem, 1.5vw, 1.15rem);
+      color: #505a6b;
+      line-height: 1.45;
+      overflow-x: auto;
+    }
+
+    .summary-actions {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      padding: 0 clamp(10px, 1.6vw, 16px) clamp(10px, 1.6vw, 16px);
+      border-top: 1px solid #dce1ea;
+      background: #ffffff;
+    }
+
+    .confirm-btn,
+    .export-btn {
+      border: none;
+      border-radius: 7px;
+      min-height: 40px;
+      padding: 0 14px;
+      background: linear-gradient(90deg, #2a5dab, #1f4f9f);
+      color: #fff;
+      font-size: clamp(0.9rem, 1.4vw, 1rem);
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: 0.1px;
+    }
+
+    .history-btn {
+      border: none;
+      border-radius: 7px;
+      min-height: 40px;
+      padding: 0 14px;
+      background: linear-gradient(90deg, #6d7788, #5a6272);
+      color: #fff;
+      font-size: clamp(0.9rem, 1.4vw, 1rem);
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: 0.1px;
+    }
+
+    .confirm-btn {
+      background: linear-gradient(90deg, #1b945f, #168252);
+    }
+
+    .confirm-btn:hover,
+    .export-btn:hover,
+    .history-btn:hover {
+      filter: brightness(1.04);
+    }
+
+    .confirm-btn:disabled,
+    .export-btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+      filter: none;
+    }
+
+    .summary-feedback {
+      min-height: 18px;
+      margin: 0;
+      padding: 0 clamp(10px, 1.6vw, 16px) clamp(8px, 1.4vw, 12px);
+      font-size: 0.86rem;
+      font-weight: 700;
+      color: #687385;
+      background: #fff;
+    }
+
+    .summary-feedback.success {
+      color: #1f8f60;
+    }
+
+    .summary-feedback.error {
+      color: #c03b3b;
+    }
+
+    .summary-line {
+      margin: 0 0 8px;
+    }
+
+    .summary-line:last-child {
+      margin-bottom: 0;
+    }
+
+    .summary-table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      margin: 0 0 10px;
+      background: #fff;
+    }
+
+    .summary-table th,
+    .summary-table td {
+      border: 1px solid #d8dde6;
+      padding: 8px 10px;
+      vertical-align: middle;
+      word-break: break-word;
+    }
+
+    .summary-meta-table th {
+      width: 36%;
+      text-align: left;
+      background: #f5f7fa;
+      color: #354055;
+      font-weight: 750;
+    }
+
+    .summary-meta-table td {
+      color: #2f3a4c;
+      font-weight: 600;
+    }
+
+    .summary-items-table th {
+      text-align: left;
+      background: #f5f7fa;
+      color: #354055;
+      font-weight: 750;
+    }
+
+    .summary-items-table td {
+      color: #3f4a5d;
+      font-weight: 600;
+    }
+
+    .summary-items-table th:not(:first-child),
+    .summary-items-table td:not(:first-child) {
+      text-align: center;
+    }
+
+    .summary-totals-table th {
+      width: 50%;
+      text-align: left;
+      background: #f5f7fa;
+      color: #354055;
+      font-weight: 750;
+    }
+
+    .summary-totals-table td {
+      text-align: right;
+      color: #2f3a4c;
+      font-weight: 700;
+    }
+
+    .summary-totals-table .summary-grand-total th,
+    .summary-totals-table .summary-grand-total td {
+      background: #eef4ff;
+      color: #1f4f9f;
+      font-weight: 800;
+    }
+
+    .summary-total {
+      margin-top: 14px;
+      padding-top: 10px;
+      border-top: 1px solid #d8dde6;
+      font-weight: 700;
+      color: #2f3a4c;
+    }
+
+    .history-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 120;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+      background: rgba(27, 34, 47, 0.5);
+    }
+
+    .history-backdrop.open {
+      display: flex;
+    }
+
+    .history-modal {
+      width: min(100%, 640px);
+      border: 1px solid #d3d8e2;
+      border-radius: 10px;
+      background: #fff;
+      box-shadow: 0 16px 30px rgba(29, 38, 56, 0.25);
+      overflow: hidden;
+    }
+
+    .history-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 12px 16px;
+      border-bottom: 1px solid #dce1ea;
+      background: #fcfcfd;
+    }
+
+    .history-head h2 {
+      margin: 0;
+      font-size: clamp(1rem, 2vw, 1.35rem);
+      font-weight: 760;
+      color: #2e3440;
+      line-height: 1.2;
+    }
+
+    .history-close-btn {
+      border: none;
+      background: none;
+      color: #828c9b;
+      font-size: 1.8rem;
+      line-height: 1;
+      width: 34px;
+      height: 34px;
+      padding: 0;
+      cursor: pointer;
+    }
+
+    .history-close-btn:hover {
+      color: #6d7684;
+    }
+
+    .history-body {
+      padding: 12px 16px 16px;
+    }
+
+    .history-feedback {
+      min-height: 18px;
+      margin: 0 0 10px;
+      font-size: 0.86rem;
+      font-weight: 700;
+      color: #687385;
+    }
+
+    .history-feedback.error {
+      color: #c03b3b;
+    }
+
+    .history-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 10px;
+    }
+
+    .history-item {
+      border: 1px solid #d8dde6;
+      border-radius: 8px;
+      background: #f8faff;
+      padding: 10px 12px;
+    }
+
+    .history-item-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .history-bon {
+      font-weight: 750;
+      color: #2f3a4c;
+    }
+
+    .history-total {
+      font-weight: 700;
+      color: #1f4f9f;
+    }
+
+    .history-line {
+      margin: 0;
+      font-size: 0.9rem;
+      color: #505a6b;
+      line-height: 1.35;
+    }
+
+    .history-line + .history-line {
+      margin-top: 4px;
+    }
+
+    .history-empty {
+      border: 1px dashed #c8cfdb;
+      border-radius: 8px;
+      background: #f7f9fc;
+      padding: 10px 12px;
+      color: #566179;
+      font-size: 0.92rem;
+      font-weight: 600;
+    }
+
+    @media (max-width: 900px) {
+      .shell {
+        border-radius: 8px;
+      }
+
+      .workspace {
+        padding: 20px 12px 24px;
+      }
+
+      .modal {
+        width: 100%;
+      }
+
+      .form-grid {
+        grid-template-columns: minmax(0, 1fr) minmax(170px, 200px);
+      }
+
+      .product {
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+
+      .product-batch {
+        padding: 9px;
+      }
+
+      .product-tools {
+        justify-content: flex-start;
+      }
+
+      .products-filter-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      body {
+        padding: 6px;
+      }
+
+      .shell {
+        min-height: auto;
+        border-radius: 8px;
+      }
+
+      .page-head {
+        font-size: clamp(1.1rem, 5.8vw, 1.7rem);
+        padding: 12px 10px;
+      }
+
+      .modal-head {
+        padding: 12px 14px;
+      }
+
+      .modal-body {
+        padding: 14px;
+      }
+
+      .modal-head h1 {
+        font-size: clamp(1.1rem, 5vw, 1.45rem);
+      }
+
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .field-label,
+      .products-title,
+      .summary-head {
+        font-size: clamp(1.05rem, 4.5vw, 1.25rem);
+      }
+
+      .product-main {
+        font-size: 0.98rem;
+      }
+
+      .client-input {
+        height: 42px;
+        font-size: 0.95rem;
+      }
+
+      .date-input {
+        height: 42px;
+        font-size: 0.95rem;
+      }
+
+      .create-btn {
+        min-height: 44px;
+        font-size: 1.05rem;
+      }
+
+      .summary-body {
+        min-height: 56px;
+        font-size: 0.92rem;
+      }
+
+      .qty-input {
+        width: 70px;
+        min-height: 36px;
+      }
+
+      .close-btn,
+      .remove-btn {
+        width: 34px;
+        height: 34px;
+      }
+    }
+
+    @media (max-width: 420px) {
+      .workspace {
+        padding: 12px 8px 16px;
+      }
+
+      .modal-head,
+      .modal-body {
+        padding-left: 10px;
+        padding-right: 10px;
+      }
+
+      .product-tools {
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      .products-pagination {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .products-page-btn {
+        width: 100%;
+      }
+
+      .products-page-info {
+        text-align: center;
+      }
+
+      .remove-btn {
+        margin-left: auto;
+      }
+
+      .summary-actions {
+        padding-left: 10px;
+        padding-right: 10px;
+      }
+
+      .confirm-btn,
+      .export-btn,
+      .history-btn {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="page-head">Cr&eacute;er un Bon de Commande</header>
+
+    <section class="workspace">
+      <article class="modal">
+        <header class="modal-head">
+          <h1>Cr&eacute;er un Bon de Commande</h1>
+          <button id="closeBtn" class="close-btn" type="button" aria-label="Fermer">&times;</button>
+        </header>
+
+        <div class="modal-body">
+          <div class="form-grid">
+            <div class="field">
+              <label class="field-label" for="clientName">Nom du client</label>
+              <input id="clientName" class="client-input" type="text" placeholder="Entrez votre nom" />
+            </div>
+            <div class="field">
+              <label class="field-label" for="orderDate">Date du bon</label>
+              <input id="orderDate" class="date-input" type="date" />
+            </div>
+          </div>
+
+          <h2 class="products-title">S&eacute;lectionnez les produits</h2>
+          <div class="products-search">
+            <div class="products-filter-row">
+              <input id="productsSearchInput" class="products-search-input" type="search" placeholder="Rechercher un produit..." />
+              <select id="productsSortSelect" class="products-sort-select">
+                <option value="alpha_asc">Tri alphabetique (A-Z)</option>
+                <option value="alpha_desc">Tri alphabetique (Z-A)</option>
+              </select>
+            </div>
+            <p id="productsSearchFeedback" class="products-search-feedback"></p>
+            <div class="products-pagination">
+              <button id="prevProductsPageBtn" class="products-page-btn" type="button" disabled>Liste precedente</button>
+              <span id="productsPageInfo" class="products-page-info">Aucune liste</span>
+              <button id="nextProductsPageBtn" class="products-page-btn" type="button" disabled>Liste suivante</button>
+            </div>
+          </div>
+
+          <ul id="productsList" class="products">
+            <li class="product-empty">Chargement des produits valables...</li>
+          </ul>
+
+          <button id="createBtn" class="create-btn" type="button">Cr&eacute;er le Bon</button>
+
+          <hr class="separator" />
+
+          <section class="summary">
+            <h2 class="summary-head">R&eacute;sum&eacute; du Bon</h2>
+            <div id="summaryBody" class="summary-body"></div>
+            <div class="summary-actions">
+              <button id="historyBtn" class="history-btn" type="button">Historique (3)</button>
+              <button id="confirmOrderBtn" class="confirm-btn" type="button" disabled>Confirmer le Bon</button>
+              <button id="exportPdfBtn" class="export-btn" type="button" disabled>Exporter en PDF</button>
+            </div>
+            <p id="summaryFeedback" class="summary-feedback"></p>
+          </section>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <div id="historyModal" class="history-backdrop" aria-hidden="true">
+    <article class="history-modal">
+      <header class="history-head">
+        <h2>Historique des 3 derniers bons envoyes</h2>
+        <button id="closeHistoryBtn" class="history-close-btn" type="button" aria-label="Fermer">&times;</button>
+      </header>
+      <div class="history-body">
+        <p id="historyFeedback" class="history-feedback"></p>
+        <ul id="historyList" class="history-list">
+          <li class="history-empty">Cliquez sur Historique pour charger les bons.</li>
+        </ul>
+      </div>
+    </article>
+  </div>
+
+  <script defer src="https://www.gstatic.com/firebasejs/12.9.0/firebase-app-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/12.9.0/firebase-auth-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore-compat.js"></script>
+  <script defer src="auth-guard.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <script>
+    const PRODUCTS_COLLECTION = "produits";
+    const ORDERS_COLLECTION = "bons_commande";
+    const ORDER_COUNTERS_COLLECTION = "bons_compteurs";
+    const FIREBASE_CONFIG = {
+      projectId: "stock-39779",
+      appId: "1:158388559832:web:b602cacd8029b589c51cad",
+      storageBucket: "stock-39779.firebasestorage.app",
+      apiKey: "AIzaSyDZanRdCzy76lJpXHvAML64QGHjlGV41Lk",
+      authDomain: "stock-39779.firebaseapp.com",
+      messagingSenderId: "158388559832",
+      measurementId: "G-DJY60E2N7R"
+    };
+    let appDb = null;
+    let currentUserUid = "";
+    let currentOwnerUid = "";
+    let currentAmbillonId = "";
+    let currentAmbillonNom = "";
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      const summaryBody = document.getElementById("summaryBody");
+      const createBtn = document.getElementById("createBtn");
+      const confirmOrderBtn = document.getElementById("confirmOrderBtn");
+      const exportPdfBtn = document.getElementById("exportPdfBtn");
+      const historyBtn = document.getElementById("historyBtn");
+      const summaryFeedback = document.getElementById("summaryFeedback");
+      const closeBtn = document.getElementById("closeBtn");
+      const clientInput = document.getElementById("clientName");
+      const orderDateInput = document.getElementById("orderDate");
+      const productsSearchInput = document.getElementById("productsSearchInput");
+      const productsSortSelect = document.getElementById("productsSortSelect");
+      const productsSearchFeedback = document.getElementById("productsSearchFeedback");
+      const prevProductsPageBtn = document.getElementById("prevProductsPageBtn");
+      const nextProductsPageBtn = document.getElementById("nextProductsPageBtn");
+      const productsPageInfo = document.getElementById("productsPageInfo");
+      const productsList = document.getElementById("productsList");
+      const historyModal = document.getElementById("historyModal");
+      const closeHistoryBtn = document.getElementById("closeHistoryBtn");
+      const historyList = document.getElementById("historyList");
+      const historyFeedback = document.getElementById("historyFeedback");
+      let productRows = [];
+      let loadedProducts = [];
+      let lastGeneratedOrder = null;
+      let hasCurrentOrderBeenSent = false;
+      let currentProductsPage = 0;
+
+      function renderProductsWithCurrentFilters(requestedPage) {
+        const savedState = captureProductRowsState(productRows);
+        const sortedProducts = sortProductsAlphabetically(
+          loadedProducts,
+          productsSortSelect && productsSortSelect.value ? productsSortSelect.value : "alpha_asc"
+        );
+        productRows = renderProductsList(productsList, sortedProducts);
+        restoreProductRowsState(productRows, savedState);
+        currentProductsPage = applyProductsSearchFilter(
+          productRows,
+          productsSearchInput,
+          productsSearchFeedback,
+          productsList,
+          prevProductsPageBtn,
+          nextProductsPageBtn,
+          productsPageInfo,
+          requestedPage
+        );
+      }
+
+      const ambillonSession = readAmbillonSession();
+      currentAmbillonId = ambillonSession && ambillonSession.id ? String(ambillonSession.id) : "";
+      currentAmbillonNom = ambillonSession && ambillonSession.nom ? String(ambillonSession.nom).trim() : "";
+      currentOwnerUid = ambillonSession && ambillonSession.ownerUid ? String(ambillonSession.ownerUid) : "";
+
+      if (orderDateInput) {
+        orderDateInput.value = getTodayIsoDate();
+      }
+      createBtn.disabled = true;
+      confirmOrderBtn.disabled = true;
+      exportPdfBtn.disabled = true;
+
+      if (productsSearchInput) {
+        productsSearchInput.addEventListener("input", () => {
+          currentProductsPage = 0;
+          renderProductsWithCurrentFilters(0);
+        });
+      }
+
+      if (productsSortSelect) {
+        productsSortSelect.addEventListener("change", () => {
+          currentProductsPage = 0;
+          renderProductsWithCurrentFilters(0);
+        });
+      }
+
+      if (prevProductsPageBtn) {
+        prevProductsPageBtn.addEventListener("click", () => {
+          currentProductsPage = updateProductsPaginationState(
+            productsList,
+            currentProductsPage - 1,
+            prevProductsPageBtn,
+            nextProductsPageBtn,
+            productsPageInfo
+          );
+        });
+      }
+
+      if (nextProductsPageBtn) {
+        nextProductsPageBtn.addEventListener("click", () => {
+          currentProductsPage = updateProductsPaginationState(
+            productsList,
+            currentProductsPage + 1,
+            prevProductsPageBtn,
+            nextProductsPageBtn,
+            productsPageInfo
+          );
+        });
+      }
+
+      closeBtn.addEventListener("click", () => {
+        window.location.replace("index.html");
+      });
+
+      historyBtn.addEventListener("click", async () => {
+        openHistoryModal(historyModal);
+        await loadRecentOrdersHistory(historyList, historyFeedback);
+      });
+
+      closeHistoryBtn.addEventListener("click", () => {
+        closeHistoryModal(historyModal);
+      });
+
+      historyModal.addEventListener("click", (event) => {
+        if (event.target === historyModal) {
+          closeHistoryModal(historyModal);
+        }
+      });
+
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && historyModal.classList.contains("open")) {
+          closeHistoryModal(historyModal);
+        }
+      });
+
+      createBtn.addEventListener("click", async () => {
+        const orderData = buildOrderPayload(productRows, clientInput, orderDateInput);
+        if (orderData.selected.length === 0) {
+          summaryBody.innerHTML = "<p class='summary-line'>Aucun produit s&eacute;lectionn&eacute;.</p>";
+          confirmOrderBtn.disabled = true;
+          exportPdfBtn.disabled = true;
+          lastGeneratedOrder = null;
+          hasCurrentOrderBeenSent = false;
+          setSummaryFeedback(summaryFeedback, "", "");
+          return;
+        }
+
+        const originalLabel = createBtn.textContent;
+        createBtn.disabled = true;
+        createBtn.textContent = "Generation...";
+
+        try {
+          const preparedOrder = await prepareOrderWithBonNumber(orderData, lastGeneratedOrder);
+          renderSummary(summaryBody, preparedOrder);
+          hasCurrentOrderBeenSent = false;
+          confirmOrderBtn.disabled = false;
+          exportPdfBtn.disabled = false;
+          lastGeneratedOrder = preparedOrder;
+          setSummaryFeedback(summaryFeedback, "", "");
+        } catch (error) {
+          confirmOrderBtn.disabled = true;
+          exportPdfBtn.disabled = true;
+          setSummaryFeedback(summaryFeedback, "Impossible de generer le numero du bon: " + getFirebaseErrorText(error), "error");
+        } finally {
+          createBtn.textContent = originalLabel;
+          createBtn.disabled = productRows.length === 0;
+        }
+      });
+
+      exportPdfBtn.addEventListener("click", async () => {
+        let dataToExport = lastGeneratedOrder;
+        if (!dataToExport) {
+          const rawOrder = buildOrderPayload(productRows, clientInput, orderDateInput);
+          if (rawOrder.selected.length === 0) {
+            summaryBody.innerHTML = "<p class='summary-line'>Aucun produit s&eacute;lectionn&eacute;.</p>";
+            confirmOrderBtn.disabled = true;
+            exportPdfBtn.disabled = true;
+            return;
+          }
+
+          try {
+            dataToExport = await prepareOrderWithBonNumber(rawOrder, lastGeneratedOrder);
+          } catch (error) {
+            setSummaryFeedback(summaryFeedback, "Impossible de generer le numero du bon: " + getFirebaseErrorText(error), "error");
+            return;
+          }
+
+          renderSummary(summaryBody, dataToExport);
+          hasCurrentOrderBeenSent = false;
+          confirmOrderBtn.disabled = false;
+          exportPdfBtn.disabled = false;
+          lastGeneratedOrder = dataToExport;
+        }
+        exportOrderAsPdf(dataToExport);
+      });
+
+      confirmOrderBtn.addEventListener("click", async () => {
+        if (hasCurrentOrderBeenSent && lastGeneratedOrder && isValidBonNumber(lastGeneratedOrder.bonNumber)) {
+          setSummaryFeedback(summaryFeedback, "Ce bon est deja envoye. Clique sur Creer le Bon pour generer un nouveau numero.", "success");
+          confirmOrderBtn.disabled = true;
+          return;
+        }
+
+        let dataToConfirm = lastGeneratedOrder;
+        if (!dataToConfirm) {
+          const rawOrder = buildOrderPayload(productRows, clientInput, orderDateInput);
+          if (rawOrder.selected.length === 0) {
+            summaryBody.innerHTML = "<p class='summary-line'>Aucun produit s&eacute;lectionn&eacute;.</p>";
+            confirmOrderBtn.disabled = true;
+            exportPdfBtn.disabled = true;
+            setSummaryFeedback(summaryFeedback, "Aucun produit a confirmer.", "error");
+            return;
+          }
+
+          dataToConfirm = await prepareOrderWithBonNumber(rawOrder, lastGeneratedOrder);
+          renderSummary(summaryBody, dataToConfirm);
+          hasCurrentOrderBeenSent = false;
+          confirmOrderBtn.disabled = false;
+          exportPdfBtn.disabled = false;
+          lastGeneratedOrder = dataToConfirm;
+        }
+
+        const originalLabel = confirmOrderBtn.textContent;
+        confirmOrderBtn.disabled = true;
+        confirmOrderBtn.textContent = "Envoi...";
+
+        try {
+          const bonNumber = await saveConfirmedOrder(dataToConfirm);
+          if (dataToConfirm.bonNumber !== bonNumber) {
+            dataToConfirm = {
+              ...dataToConfirm,
+              bonNumber: bonNumber
+            };
+            lastGeneratedOrder = dataToConfirm;
+            renderSummary(summaryBody, dataToConfirm);
+          }
+          hasCurrentOrderBeenSent = true;
+          setSummaryFeedback(summaryFeedback, "Bon " + bonNumber + " envoye vers Messages Ambillon.", "success");
+          if (historyModal.classList.contains("open")) {
+            await loadRecentOrdersHistory(historyList, historyFeedback);
+          }
+        } catch (error) {
+          setSummaryFeedback(summaryFeedback, "Echec d'envoi du bon: " + getFirebaseErrorText(error), "error");
+        } finally {
+          confirmOrderBtn.textContent = originalLabel;
+          confirmOrderBtn.disabled = hasCurrentOrderBeenSent || !lastGeneratedOrder;
+        }
+      });
+
+      summaryBody.innerHTML = "<p class='summary-line'>Le r&eacute;sum&eacute; du bon appara&icirc;tra ici.</p>";
+      setSummaryFeedback(summaryFeedback, "", "");
+
+      try {
+        const storeData = await loadValidProductsForCurrentAmbillon();
+        if (storeData === null) {
+          return;
+        }
+
+        appDb = storeData.db;
+        currentUserUid = storeData.userUid;
+        currentOwnerUid = storeData.ownerUid;
+        loadedProducts = Array.isArray(storeData.products) ? storeData.products.slice() : [];
+        renderProductsWithCurrentFilters(0);
+        if (productRows.length === 0) {
+          summaryBody.innerHTML = "<p class='summary-line'>Aucun produit valable trouv&eacute; pour cet utilisateur.</p>";
+          createBtn.disabled = true;
+          confirmOrderBtn.disabled = true;
+          exportPdfBtn.disabled = true;
+          return;
+        }
+
+        createBtn.disabled = false;
+      } catch (error) {
+        loadedProducts = [];
+        productsList.innerHTML = "<li class='product-empty'>Impossible de charger les produits valables.</li>";
+        updateProductsPaginationState(productsList, 0, prevProductsPageBtn, nextProductsPageBtn, productsPageInfo);
+        summaryBody.innerHTML = "<p class='summary-line'>Erreur de chargement des produits.</p>";
+        createBtn.disabled = true;
+        confirmOrderBtn.disabled = true;
+        exportPdfBtn.disabled = true;
+      }
+    });
+
+    async function loadValidProductsForCurrentAmbillon() {
+      if (!window.AuthGuard) {
+        throw new Error("AuthGuard introuvable");
+      }
+
+      const isAuthenticated = await window.AuthGuard.ensureAuthenticatedUser();
+      if (!isAuthenticated) {
+        return null;
+      }
+
+      if (!window.firebase) {
+        throw new Error("Firebase introuvable");
+      }
+
+      if (!firebase.apps || firebase.apps.length === 0) {
+        firebase.initializeApp(FIREBASE_CONFIG);
+      }
+      if (!firebase.auth || !firebase.firestore) {
+        throw new Error("Services Firebase indisponibles");
+      }
+
+      const currentUser = firebase.auth().currentUser;
+      const userUid = currentUser && currentUser.uid ? String(currentUser.uid) : "";
+      if (!userUid) {
+        throw new Error("Utilisateur ambillon introuvable");
+      }
+
+      const ambillonSession = readAmbillonSession();
+      const ambillonId = ambillonSession && ambillonSession.id ? String(ambillonSession.id) : "";
+      const ownerUid = ambillonSession && ambillonSession.ownerUid ? String(ambillonSession.ownerUid) : "";
+      if (!ownerUid || !ambillonId) {
+        throw new Error("Session ambillon invalide");
+      }
+
+      const firestoreDb = firebase.firestore();
+      const snapshot = await firestoreDb
+        .collection(PRODUCTS_COLLECTION)
+        .where("ownerUid", "==", ownerUid)
+        .get();
+
+      const products = snapshot.docs
+        .map((doc) => mapFirestoreProduct(doc))
+        .filter((product) => isValidAmbillonProduct(product))
+        .sort((a, b) => a.nom.localeCompare(b.nom, "fr", { sensitivity: "base" }));
+
+      return {
+        db: firestoreDb,
+        userUid: userUid,
+        ownerUid: ownerUid,
+        products: products
+      };
+    }
+
+    function mapFirestoreProduct(doc) {
+      const data = doc && typeof doc.data === "function" ? doc.data() : {};
+      return {
+        docId: String(doc && doc.id ? doc.id : ""),
+        nom: String(data && data.nom ? data.nom : "").trim(),
+        prixVente: Number(data && data.prixVente ? data.prixVente : 0),
+        quantiteParPackets: Number(data && data.quantiteParPackets ? data.quantiteParPackets : 0),
+        remise: Number(data && data.remise !== undefined ? data.remise : 0),
+        codeTva: Number(data && data.codeTva !== undefined ? data.codeTva : 0),
+        statut: String(data && data.statut ? data.statut : "Actif")
+      };
+    }
+
+    function isValidAmbillonProduct(product) {
+      return Boolean(product && product.nom) &&
+        Number.isFinite(product.prixVente) && product.prixVente > 0 &&
+        Number.isFinite(product.quantiteParPackets) && product.quantiteParPackets > 0 &&
+        normalizeStatusValue(product.statut) === "Actif";
+    }
+
+    function normalizeStatusValue(rawStatus) {
+      const value = String(rawStatus || "").trim().toLowerCase();
+      if (value === "en ligne" || value === "actif") {
+        return "Actif";
+      }
+      if (value === "epuise" || value === "en rupture") {
+        return "En rupture";
+      }
+      if (value === "arrete" || value === "arrête" || value === "arrÃªte") {
+        return "Arrete";
+      }
+      return "Actif";
+    }
+
+    function renderProductsList(listElement, products) {
+      if (!listElement) {
+        return [];
+      }
+
+      if (!Array.isArray(products) || products.length === 0) {
+        listElement.innerHTML = "<li class='product-empty'>Aucun produit valable dans votre stock.</li>";
+        return [];
+      }
+
+      const chunkSize = 5;
+      const grouped = [];
+      for (let index = 0; index < products.length; index += chunkSize) {
+        grouped.push(products.slice(index, index + chunkSize));
+      }
+
+      listElement.innerHTML = grouped.map((group, groupIndex) => {
+        const startIndex = (groupIndex * chunkSize) + 1;
+        const rowsHtml = group.map((product, offset) => {
+          const productNumber = startIndex + offset;
+          const maxQty = Math.max(1, Math.floor(Number(product.quantiteParPackets) || 1));
+          const priceValue = Number(product.prixVente) || 0;
+          const remiseValue = Number.isFinite(product.remise) ? product.remise : 0;
+          const tvaValue = Number.isFinite(product.codeTva) ? Math.max(0, product.codeTva) : 0;
+          return "<li class='product' data-id='" + escapeHtml(product.docId) + "' data-name='" + escapeHtml(product.nom) + "' data-price='" + escapeHtml(String(priceValue)) + "' data-remise='" + escapeHtml(String(remiseValue)) + "' data-tva='" + escapeHtml(String(tvaValue)) + "' data-max='" + escapeHtml(String(maxQty)) + "' data-number='" + escapeHtml(String(productNumber)) + "'>" +
+            "<label class='product-main'>" +
+              "<span class='product-order-index'>" + escapeHtml(String(productNumber)) + "</span>" +
+              "<input class='product-check' type='checkbox' checked />" +
+              "<span>" + escapeHtml(product.nom) + " (" + escapeHtml(formatDhAmount(priceValue)) + " DH | Remise: " + escapeHtml(formatPercent(remiseValue)) + "% | TVA: " + escapeHtml(formatPercent(tvaValue)) + "%)</span>" +
+            "</label>" +
+            "<div class='product-tools'>" +
+              "<div class='qty'>" +
+                "<input class='qty-input' type='number' min='1' max='" + escapeHtml(String(maxQty)) + "' step='1' inputmode='numeric' value='1' aria-label='Quantite' />" +
+              "</div>" +
+              "<button class='remove-btn' type='button' aria-label='Retirer'>&times;</button>" +
+            "</div>" +
+          "</li>";
+        }).join("");
+
+        return "<li class='product-batch'>" +
+          "<p class='product-batch-title'>Liste " + escapeHtml(String(groupIndex + 1)) + "</p>" +
+          "<ol class='products-numbered-list'>" + rowsHtml + "</ol>" +
+        "</li>";
+      }).join("");
+
+      const rows = Array.from(listElement.querySelectorAll(".product"));
+      rows.forEach((row) => bindProductRowEvents(row));
+      return rows;
+    }
+
+    function bindProductRowEvents(row) {
+      const check = row.querySelector(".product-check");
+      const qtyInput = row.querySelector(".qty-input");
+      const removeBtn = row.querySelector(".remove-btn");
+      const maxQty = Math.max(1, Number(row.dataset.max || "1"));
+
+      row.dataset.qty = "1";
+
+      if (qtyInput) {
+        qtyInput.value = "1";
+        qtyInput.setAttribute("max", String(maxQty));
+        qtyInput.addEventListener("input", () => {
+          const parsedQty = Number(qtyInput.value);
+          if (!Number.isFinite(parsedQty)) {
+            return;
+          }
+          const normalizedQty = Math.max(1, Math.min(maxQty, Math.floor(parsedQty)));
+          row.dataset.qty = String(normalizedQty);
+          if (String(normalizedQty) !== qtyInput.value) {
+            qtyInput.value = String(normalizedQty);
+          }
+        });
+        qtyInput.addEventListener("blur", () => {
+          const parsedQty = Number(qtyInput.value);
+          const normalizedQty = Number.isFinite(parsedQty)
+            ? Math.max(1, Math.min(maxQty, Math.floor(parsedQty)))
+            : 1;
+          row.dataset.qty = String(normalizedQty);
+          qtyInput.value = String(normalizedQty);
+        });
+      }
+
+      removeBtn.addEventListener("click", () => {
+        check.checked = false;
+      });
+    }
+
+    function applyProductsSearchFilter(
+      productRows,
+      searchInput,
+      feedbackElement,
+      listElement,
+      prevButton,
+      nextButton,
+      pageInfoElement,
+      requestedPage
+    ) {
+      if (!Array.isArray(productRows) || productRows.length === 0) {
+        if (feedbackElement) {
+          feedbackElement.textContent = "";
+        }
+        return updateProductsPaginationState(listElement, 0, prevButton, nextButton, pageInfoElement);
+      }
+
+      const term = normalizeSearchTerm(searchInput && searchInput.value ? searchInput.value : "");
+      let visibleCount = 0;
+      const groups = new Set();
+
+      productRows.forEach((row) => {
+        const rowName = normalizeSearchTerm(row.dataset.name || "");
+        const shouldShow = term === "" || rowName.includes(term);
+        row.style.display = shouldShow ? "" : "none";
+        const parentGroup = row.closest(".product-batch");
+        if (parentGroup) {
+          groups.add(parentGroup);
+        }
+        if (shouldShow) {
+          visibleCount += 1;
+        }
+      });
+
+      groups.forEach((group) => {
+        const hasVisibleRows = Array.from(group.querySelectorAll(".product"))
+          .some((row) => row.style.display !== "none");
+        group.dataset.searchVisible = hasVisibleRows ? "1" : "0";
+      });
+
+      if (!feedbackElement) {
+        return updateProductsPaginationState(
+          listElement,
+          Number.isFinite(Number(requestedPage)) ? Number(requestedPage) : 0,
+          prevButton,
+          nextButton,
+          pageInfoElement
+        );
+      }
+
+      if (term === "") {
+        feedbackElement.textContent = "";
+        return updateProductsPaginationState(
+          listElement,
+          Number.isFinite(Number(requestedPage)) ? Number(requestedPage) : 0,
+          prevButton,
+          nextButton,
+          pageInfoElement
+        );
+      }
+
+      if (visibleCount === 0) {
+        feedbackElement.textContent = "Aucun produit trouve pour cette recherche.";
+      } else {
+        feedbackElement.textContent = String(visibleCount) + " produit(s) trouve(s).";
+      }
+
+      return updateProductsPaginationState(
+        listElement,
+        Number.isFinite(Number(requestedPage)) ? Number(requestedPage) : 0,
+        prevButton,
+        nextButton,
+        pageInfoElement
+      );
+    }
+
+    function updateProductsPaginationState(listElement, requestedPage, prevButton, nextButton, pageInfoElement) {
+      const allGroups = listElement ? Array.from(listElement.querySelectorAll(".product-batch")) : [];
+      const visibleGroups = allGroups.filter((group) => String(group.dataset.searchVisible || "1") !== "0");
+      const totalPages = visibleGroups.length;
+      const normalizedRequestedPage = Number.isFinite(Number(requestedPage)) ? Number(requestedPage) : 0;
+      const safePage = totalPages > 0
+        ? Math.max(0, Math.min(totalPages - 1, Math.floor(normalizedRequestedPage)))
+        : 0;
+
+      allGroups.forEach((group) => {
+        group.style.display = "none";
+      });
+      if (totalPages > 0) {
+        visibleGroups[safePage].style.display = "";
+      }
+
+      if (pageInfoElement) {
+        pageInfoElement.textContent = totalPages > 0
+          ? "Liste " + String(safePage + 1) + " / " + String(totalPages)
+          : "Aucune liste";
+      }
+      if (prevButton) {
+        prevButton.disabled = totalPages <= 1 || safePage === 0;
+      }
+      if (nextButton) {
+        nextButton.disabled = totalPages <= 1 || safePage >= totalPages - 1;
+      }
+
+      return safePage;
+    }
+
+    function sortProductsAlphabetically(products, mode) {
+      const list = Array.isArray(products) ? products.slice() : [];
+      list.sort((a, b) => {
+        const nameA = String(a && a.nom ? a.nom : "");
+        const nameB = String(b && b.nom ? b.nom : "");
+        const baseCompare = nameA.localeCompare(nameB, "fr", { sensitivity: "base" });
+        return mode === "alpha_desc" ? (baseCompare * -1) : baseCompare;
+      });
+      return list;
+    }
+
+    function captureProductRowsState(productRows) {
+      const state = {};
+      if (!Array.isArray(productRows)) {
+        return state;
+      }
+      productRows.forEach((row) => {
+        const productId = String(row.dataset.id || "");
+        if (!productId) {
+          return;
+        }
+        const check = row.querySelector(".product-check");
+        const qtyInput = row.querySelector(".qty-input");
+        const qtyValue = Number(row.dataset.qty || (qtyInput ? qtyInput.value : "1"));
+        state[productId] = {
+          checked: Boolean(check && check.checked),
+          qty: Number.isFinite(qtyValue) ? qtyValue : 1
+        };
+      });
+      return state;
+    }
+
+    function restoreProductRowsState(productRows, state) {
+      if (!Array.isArray(productRows) || !state || typeof state !== "object") {
+        return;
+      }
+      productRows.forEach((row) => {
+        const productId = String(row.dataset.id || "");
+        if (!productId || !state[productId]) {
+          return;
+        }
+        const check = row.querySelector(".product-check");
+        const qtyInput = row.querySelector(".qty-input");
+        const maxQty = Math.max(1, Number(row.dataset.max || "1"));
+        const savedQty = Number(state[productId].qty);
+        const normalizedQty = Number.isFinite(savedQty)
+          ? Math.max(1, Math.min(maxQty, Math.floor(savedQty)))
+          : 1;
+
+        row.dataset.qty = String(normalizedQty);
+        if (qtyInput) {
+          qtyInput.value = String(normalizedQty);
+        }
+        if (check) {
+          check.checked = Boolean(state[productId].checked);
+        }
+      });
+    }
+
+    function buildOrderPayload(productRows, clientInput, orderDateInput) {
+      const clientName = (clientInput.value || "").trim() || "Client non renseigne";
+      const rawDate = (orderDateInput && orderDateInput.value ? orderDateInput.value : "");
+      const displayDate = formatDateForDisplay(rawDate);
+      const selected = productRows
+        .filter((row) => row.querySelector(".product-check").checked)
+        .map((row) => {
+          const productId = String(row.dataset.id || "");
+          const name = row.dataset.name || "Produit";
+          const price = Number(row.dataset.price || "0");
+          const remise = Math.max(0, Math.min(100, Number(row.dataset.remise || "0")));
+          const tva = Math.max(0, Number(row.dataset.tva || "0"));
+          const qty = Number(row.dataset.qty || "1");
+          const totalHt = price * qty;
+          const totalWithRemise = totalHt * (1 - (remise / 100));
+          const total = totalWithRemise * (1 + (tva / 100));
+          return {
+            productId,
+            name,
+            price,
+            remise,
+            tva,
+            qty,
+            totalHt,
+            totalWithRemise,
+            total: total
+          };
+        });
+
+      const totalHt = selected.reduce((sum, item) => sum + (Number(item.totalHt) || 0), 0);
+      const totalWithRemise = selected.reduce((sum, item) => sum + (Number(item.totalWithRemise) || 0), 0);
+      const total = selected.reduce((sum, item) => sum + (Number(item.total) || 0), 0);
+      return {
+        clientName,
+        rawDate,
+        displayDate,
+        selected,
+        totalHt,
+        totalWithRemise,
+        total
+      };
+    }
+
+    function renderSummary(summaryElement, orderData) {
+      const totalHtValue = Number(orderData && orderData.totalHt) || 0;
+      const totalWithRemiseValue = Number(orderData && orderData.totalWithRemise) || 0;
+      const totalValue = Number(orderData && orderData.total) || 0;
+      const metaTable = "<table class='summary-table summary-meta-table'>" +
+        "<tbody>" +
+          "<tr><th>Bon</th><td>" + escapeHtml(orderData.bonNumber || "BC-......") + "</td></tr>" +
+          "<tr><th>Client</th><td>" + escapeHtml(orderData.clientName) + "</td></tr>" +
+          "<tr><th>Date</th><td>" + escapeHtml(orderData.displayDate) + "</td></tr>" +
+        "</tbody>" +
+      "</table>";
+
+      const itemsRows = orderData.selected.map((item) => {
+        return "<tr>" +
+          "<td>" + escapeHtml(item.name) + "</td>" +
+          "<td>" + escapeHtml(String(item.qty)) + "</td>" +
+          "<td>" + escapeHtml(formatDhAmount(item.price)) + " DH</td>" +
+          "<td>" + escapeHtml(formatPercent(item.remise)) + "%</td>" +
+          "<td>" + escapeHtml(formatPercent(item.tva)) + "%</td>" +
+          "<td>" + escapeHtml(formatDhAmount(item.total)) + " DH</td>" +
+        "</tr>";
+      }).join("");
+
+      const itemsTable = "<table class='summary-table summary-items-table'>" +
+        "<thead>" +
+          "<tr>" +
+            "<th>Produit</th>" +
+            "<th>Qte</th>" +
+            "<th>Prix U</th>" +
+            "<th>Remise</th>" +
+            "<th>TVA</th>" +
+            "<th>Total</th>" +
+          "</tr>" +
+        "</thead>" +
+        "<tbody>" + itemsRows + "</tbody>" +
+      "</table>";
+
+      const totalsTable = "<table class='summary-table summary-totals-table'>" +
+        "<tbody>" +
+          "<tr><th>Prix total HT</th><td>" + formatDhAmount(totalHtValue) + " DH</td></tr>" +
+          "<tr><th>Prix avec remise</th><td>" + formatDhAmount(totalWithRemiseValue) + " DH</td></tr>" +
+          "<tr class='summary-grand-total'><th>Prix total</th><td>" + formatDhAmount(totalValue) + " DH</td></tr>" +
+        "</tbody>" +
+      "</table>";
+
+      summaryElement.innerHTML = metaTable + itemsTable + totalsTable;
+    }
+
+    async function prepareOrderWithBonNumber(orderData, previousOrder) {
+      const fingerprint = buildOrderFingerprint(orderData);
+      const preparedOrder = {
+        ...orderData,
+        fingerprint: fingerprint
+      };
+
+      if (previousOrder &&
+        previousOrder.fingerprint === fingerprint &&
+        isValidBonNumber(previousOrder.bonNumber)) {
+        preparedOrder.bonNumber = String(previousOrder.bonNumber);
+        return preparedOrder;
+      }
+
+      preparedOrder.bonNumber = await generateUniqueBonNumber();
+      return preparedOrder;
+    }
+
+    function buildOrderFingerprint(orderData) {
+      return JSON.stringify({
+        clientName: String(orderData && orderData.clientName ? orderData.clientName : ""),
+        rawDate: String(orderData && orderData.rawDate ? orderData.rawDate : ""),
+        selected: Array.isArray(orderData && orderData.selected) ? orderData.selected.map((item) => {
+          return {
+            productId: String(item.productId || ""),
+            name: String(item.name || ""),
+            price: Number(item.price) || 0,
+            remise: Number(item.remise) || 0,
+            tva: Number(item.tva) || 0,
+            qty: Number(item.qty) || 0
+          };
+        }) : []
+      });
+    }
+
+    function isValidBonNumber(value) {
+      return /^BC-\d{6}$/.test(String(value || ""));
+    }
+
+    async function saveConfirmedOrder(orderData) {
+      if (!appDb || !currentOwnerUid || !currentAmbillonId) {
+        throw new Error("Session utilisateur invalide");
+      }
+      const bonNumber = isValidBonNumber(orderData && orderData.bonNumber)
+        ? String(orderData.bonNumber)
+        : await generateUniqueBonNumber();
+      const payload = {
+        bon: bonNumber,
+        bonId: bonNumber,
+        client: String(orderData.clientName || ""),
+        ambillon: getAmbillonLabel(),
+        ambillonId: currentAmbillonId || "",
+        date: String(orderData.displayDate || ""),
+        dateIso: String(orderData.rawDate || getTodayIsoDate()),
+        amount: formatDhAmount(orderData.total) + " DH",
+        total: Number(orderData.total) || 0,
+        status: "en_attente",
+        ownerUid: currentOwnerUid,
+        items: Array.isArray(orderData.selected) ? orderData.selected.map((item) => {
+          return {
+            productId: String(item.productId || ""),
+            name: String(item.name || ""),
+            prix: Number(item.price) || 0,
+            remise: Number(item.remise) || 0,
+            tva: Number(item.tva) || 0,
+            qty: Number(item.qty) || 0,
+            totalHt: Number(item.totalHt) || 0,
+            totalWithRemise: Number(item.totalWithRemise) || 0,
+            total: Number(item.total) || 0
+          };
+        }) : [],
+        source: "bon.html",
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      };
+
+      const orderDocId = buildOrderDocumentId(bonNumber);
+      await appDb.collection(ORDERS_COLLECTION).doc(orderDocId).set(payload);
+      return bonNumber;
+    }
+
+    function openHistoryModal(modalElement) {
+      if (!modalElement) {
+        return;
+      }
+      modalElement.classList.add("open");
+      modalElement.setAttribute("aria-hidden", "false");
+    }
+
+    function closeHistoryModal(modalElement) {
+      if (!modalElement) {
+        return;
+      }
+      modalElement.classList.remove("open");
+      modalElement.setAttribute("aria-hidden", "true");
+    }
+
+    async function loadRecentOrdersHistory(listElement, feedbackElement) {
+      if (!listElement || !feedbackElement) {
+        return;
+      }
+
+      if (!appDb || !currentOwnerUid || !currentAmbillonId) {
+        listElement.innerHTML = "<li class='history-empty'>Session indisponible. Rechargez la page.</li>";
+        setHistoryFeedback(feedbackElement, "Session utilisateur indisponible.", "error");
+        return;
+      }
+
+      setHistoryFeedback(feedbackElement, "Chargement de l'historique...", "");
+      try {
+        const historyQuery = appDb.collection(ORDERS_COLLECTION)
+          .where("ownerUid", "==", currentOwnerUid)
+          .where("ambillonId", "==", currentAmbillonId);
+        const snapshot = await historyQuery.get();
+
+        const recentOrders = snapshot.docs
+          .map((doc) => mapHistoryOrder(doc))
+          .sort((a, b) => {
+            return (b.createdAtMs - a.createdAtMs) || b.bon.localeCompare(a.bon, "fr", { numeric: true, sensitivity: "base" });
+          })
+          .slice(0, 3);
+
+        if (recentOrders.length === 0) {
+          listElement.innerHTML = "<li class='history-empty'>Aucun bon envoye pour le moment.</li>";
+          setHistoryFeedback(feedbackElement, "", "");
+          return;
+        }
+
+        listElement.innerHTML = recentOrders.map((item) => {
+          return "<li class='history-item'>" +
+            "<div class='history-item-head'>" +
+              "<span class='history-bon'>" + escapeHtml(item.bon) + "</span>" +
+              "<span class='history-total'>" + escapeHtml(item.amountText) + "</span>" +
+            "</div>" +
+            "<p class='history-line'><strong>Client:</strong> " + escapeHtml(item.client) + "</p>" +
+            "<p class='history-line'><strong>Date:</strong> " + escapeHtml(item.dateText) + "</p>" +
+          "</li>";
+        }).join("");
+        setHistoryFeedback(feedbackElement, "", "");
+      } catch (error) {
+        listElement.innerHTML = "<li class='history-empty'>Impossible de charger l'historique.</li>";
+        setHistoryFeedback(feedbackElement, getFirebaseErrorText(error), "error");
+      }
+    }
+
+    function mapHistoryOrder(doc) {
+      const data = doc && typeof doc.data === "function" ? doc.data() : {};
+      const totalValue = Number(data && data.total ? data.total : 0);
+      const amountText = data && data.amount
+        ? String(data.amount)
+        : formatDhAmount(totalValue) + " DH";
+
+      return {
+        bon: String(data && (data.bon || data.bonId) ? (data.bon || data.bonId) : (doc && doc.id ? doc.id : "")),
+        client: String(data && data.client ? data.client : "Client non renseigne"),
+        dateText: String(data && data.date ? data.date : "Non renseignee"),
+        amountText: amountText,
+        createdAtMs: getFirestoreDateMillis(data && data.createdAt)
+      };
+    }
+
+    function getFirestoreDateMillis(rawDate) {
+      if (rawDate && typeof rawDate.toMillis === "function") {
+        return rawDate.toMillis();
+      }
+      if (rawDate && typeof rawDate.seconds === "number") {
+        return Number(rawDate.seconds) * 1000;
+      }
+      return 0;
+    }
+
+    async function generateUniqueBonNumber() {
+      if (!appDb || !window.firebase || !firebase.firestore) {
+        throw new Error("Compteur de bons indisponible");
+      }
+
+      const counterRef = appDb.collection(ORDER_COUNTERS_COLLECTION).doc(getOrderCounterDocId());
+      const bonNumber = await appDb.runTransaction(async (transaction) => {
+        const counterSnapshot = await transaction.get(counterRef);
+        let nextNumber = counterSnapshot.exists ? Number(counterSnapshot.data().lastNumber || 0) : 0;
+        if (!Number.isFinite(nextNumber) || nextNumber < 0) {
+          nextNumber = 0;
+        }
+
+        nextNumber += 1;
+        if (nextNumber > 999999) {
+          throw new Error("Limite des numeros BC atteinte (999999)");
+        }
+
+        transaction.set(counterRef, {
+          lastNumber: nextNumber,
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+        return "BC-" + String(nextNumber).padStart(6, "0");
+      });
+
+      return bonNumber;
+    }
+
+    function getOrderCounterDocId() {
+      const ambillonKey = sanitizeKey(currentAmbillonId || currentAmbillonNom);
+      if (ambillonKey) {
+        return "ambillon_" + ambillonKey;
+      }
+
+      const ownerKey = sanitizeKey(currentOwnerUid);
+      if (ownerKey) {
+        return "owner_" + ownerKey;
+      }
+
+      const userKey = sanitizeKey(currentUserUid);
+      if (userKey) {
+        return "user_" + userKey;
+      }
+
+      return "global";
+    }
+
+    function buildOrderDocumentId(bonNumber) {
+      return getOrderCounterDocId() + "__" + String(bonNumber || "");
+    }
+
+    function sanitizeKey(value) {
+      return String(value || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9_-]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+    }
+
+    function getAmbillonLabel() {
+      if (currentAmbillonNom) {
+        return currentAmbillonNom;
+      }
+      if (currentAmbillonId) {
+        return currentAmbillonId;
+      }
+      return "Ambillon";
+    }
+
+    function setSummaryFeedback(element, text, type) {
+      if (!element) {
+        return;
+      }
+      element.textContent = text || "";
+      element.className = "summary-feedback" + (type ? " " + type : "");
+    }
+
+    function setHistoryFeedback(element, text, type) {
+      if (!element) {
+        return;
+      }
+      element.textContent = text || "";
+      element.className = "history-feedback" + (type ? " " + type : "");
+    }
+
+    function readAmbillonSession() {
+      try {
+        const raw = sessionStorage.getItem("ambillon_session");
+        if (!raw) {
+          return null;
+        }
+        const parsed = JSON.parse(raw);
+        if (!parsed || typeof parsed !== "object") {
+          return null;
+        }
+        return parsed;
+      } catch (error) {
+        return null;
+      }
+    }
+
+    function getFirebaseErrorText(error) {
+      const code = error && error.code ? String(error.code) : "";
+      const message = error && error.message ? String(error.message) : "";
+      if (code === "permission-denied") {
+        return "permission-denied (verifie les regles Firestore et deploie firestore.rules)";
+      }
+      if (code) {
+        return code;
+      }
+      if (message) {
+        return message;
+      }
+      return "erreur inconnue";
+    }
+
+    function exportOrderAsPdf(orderData) {
+      const jsPDFCtor = window.jspdf && window.jspdf.jsPDF;
+      if (!jsPDFCtor) {
+        window.alert("L'export PDF est indisponible pour le moment.");
+        return;
+      }
+
+      const doc = new jsPDFCtor({
+        orientation: "portrait",
+        unit: "pt",
+        format: "a4"
+      });
+
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const left = 44;
+      const right = 44;
+      const usableWidth = pageWidth - left - right;
+      let y = 58;
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(20);
+      doc.text("Bon de Commande", pageWidth / 2, y, { align: "center" });
+
+      y += 34;
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(12);
+      doc.text("Bon: " + (orderData.bonNumber || "BC-......"), left, y);
+      y += 18;
+      doc.text("Client: " + orderData.clientName, left, y);
+      y += 18;
+      doc.text("Date: " + orderData.displayDate, left, y);
+      y += 26;
+
+      doc.setFont("helvetica", "bold");
+      doc.text("Produits", left, y);
+      y += 18;
+      doc.setFont("helvetica", "normal");
+
+      orderData.selected.forEach((item, index) => {
+        const lineText = (index + 1) + ". " + item.name + " x " + item.qty + " = " + formatDhAmount(item.total) + " DH";
+        const wrapped = doc.splitTextToSize(lineText, usableWidth);
+        const neededHeight = wrapped.length * 15;
+
+        if (y + neededHeight > pageHeight - 70) {
+          doc.addPage();
+          y = 58;
+        }
+
+        doc.text(wrapped, left, y);
+        y += neededHeight;
+      });
+
+      if (y + 24 > pageHeight - 70) {
+        doc.addPage();
+        y = 58;
+      }
+
+      y += 12;
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(13);
+      doc.text("Total: " + formatDhAmount(orderData.total) + " DH", left, y);
+
+      doc.save(buildPdfFileName(orderData));
+    }
+
+    function formatDateForDisplay(rawDate) {
+      if (!rawDate) {
+        return "Non renseignee";
+      }
+      const parts = String(rawDate).split("-");
+      if (parts.length !== 3) {
+        return rawDate;
+      }
+      return parts[2] + "/" + parts[1] + "/" + parts[0];
+    }
+
+    function getTodayIsoDate() {
+      const now = new Date();
+      const yyyy = now.getFullYear();
+      const mm = String(now.getMonth() + 1).padStart(2, "0");
+      const dd = String(now.getDate()).padStart(2, "0");
+      return yyyy + "-" + mm + "-" + dd;
+    }
+
+    function buildPdfFileName(orderData) {
+      if (isValidBonNumber(orderData && orderData.bonNumber)) {
+        return String(orderData.bonNumber).toLowerCase() + ".pdf";
+      }
+      const datePart = (orderData.rawDate || getTodayIsoDate()).replace(/-/g, "");
+      const clientPart = slugify(orderData.clientName || "client").slice(0, 30) || "client";
+      return "bon-" + clientPart + "-" + datePart + ".pdf";
+    }
+
+    function formatDhAmount(value) {
+      const amount = Number(value);
+      if (!Number.isFinite(amount)) {
+        return "0";
+      }
+      return amount.toLocaleString("fr-FR", { maximumFractionDigits: 2 });
+    }
+
+    function formatPercent(value) {
+      const percent = Number(value);
+      if (!Number.isFinite(percent)) {
+        return "0";
+      }
+      return percent.toLocaleString("fr-FR", { maximumFractionDigits: 2 });
+    }
+
+    function normalizeSearchTerm(value) {
+      return String(value || "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .trim();
+    }
+
+    function slugify(value) {
+      return String(value || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+  </script>
+</body>
+</html>

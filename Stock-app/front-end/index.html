@@ -1,0 +1,1108 @@
+﻿<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ambillon - Tableau de Bord</title>
+  <style>
+    :root {
+      --blue-900: #0f2548;
+      --blue-700: #274775;
+      --blue-600: #2f4f7e;
+      --text: #24344f;
+      --muted: #6b778a;
+      --line: #d9dee6;
+      --panel: #ffffff;
+      --bg: #eef1f5;
+      --orange: #f2a11a;
+      --green: #3d9a8c;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.4;
+    }
+
+    .topbar {
+      min-height: 64px;
+      background: linear-gradient(90deg, #0f2446 0%, #2f4f7e 100%);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 20px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+      gap: 16px;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 900;
+      letter-spacing: 0.4px;
+      flex-shrink: 0;
+    }
+
+    .brand-a {
+      color: #e53935;
+      transform: skewX(-15deg);
+      display: inline-block;
+      font-size: 34px;
+      line-height: 1;
+    }
+
+    .brand-name {
+      font-size: 30px;
+      font-weight: 800;
+    }
+
+    .topnav {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-size: 15px;
+      font-weight: 600;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .topnav a {
+      color: #e9edf4;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 0 6px;
+      border-bottom: 3px solid transparent;
+      white-space: nowrap;
+    }
+
+    .topnav a.active {
+      border-bottom-color: #dce5f2;
+    }
+
+    .menu-toggle {
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      background: rgba(255, 255, 255, 0.16);
+      color: #fff;
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .menu-toggle:hover {
+      background: rgba(255, 255, 255, 0.26);
+    }
+
+    .logout-btn {
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      background: rgba(194, 40, 40, 0.42);
+      color: #fff;
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .logout-btn:hover {
+      background: rgba(194, 40, 40, 0.62);
+    }
+
+    .page {
+      max-width: 1320px;
+      margin: 0 auto;
+      min-height: calc(100vh - 64px);
+      display: block;
+    }
+
+    .sidebar {
+      background: #f1f3f7;
+      border-left: 1px solid var(--line);
+      padding-top: 16px;
+      position: fixed;
+      top: 64px;
+      right: 0;
+      width: 300px;
+      height: calc(100vh - 64px);
+      box-shadow: -10px 0 30px rgba(15, 37, 72, 0.2);
+      z-index: 40;
+      transform: translateX(100%);
+      transition: transform 0.25s ease;
+      overflow-y: auto;
+    }
+
+    .menu-open .sidebar {
+      transform: translateX(0);
+    }
+
+    .menu-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(12, 23, 44, 0.45);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+      z-index: 30;
+    }
+
+    .menu-open .menu-overlay {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .side-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 20px;
+      font-weight: 600;
+      color: #2b3f61;
+      text-decoration: none;
+      padding: 14px 16px;
+      border-bottom: 1px solid #e0e5ed;
+    }
+
+    .side-item.active {
+      background: linear-gradient(90deg, #1a3156 0%, #233f69 100%);
+      color: #fff;
+      font-weight: 700;
+    }
+
+    .content {
+      padding: 20px;
+    }
+
+    .card-grid,
+    .stats-grid,
+    .bottom-grid {
+      display: grid;
+      gap: 16px;
+    }
+
+    .card-grid,
+    .stats-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      margin-bottom: 16px;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid #e0e5ed;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(24, 42, 68, 0.08);
+      padding: 16px;
+      min-height: 160px;
+    }
+
+    .card-link {
+      display: block;
+      text-decoration: none;
+      color: inherit;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .card-link:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(24, 42, 68, 0.14);
+    }
+
+    .card-link:focus-visible {
+      outline: 2px solid var(--blue-600);
+      outline-offset: 2px;
+    }
+
+    .card .icon {
+      font-size: 42px;
+      line-height: 1;
+      margin-bottom: 8px;
+      display: inline-block;
+    }
+
+    .card h3 {
+      margin: 8px 0 6px;
+      font-size: 31px;
+      color: #1f3254;
+    }
+
+    .card p {
+      margin: 0;
+      font-size: 20px;
+      color: #4f617d;
+      border-top: 2px solid #e2e7ef;
+      padding-top: 8px;
+    }
+
+    .ambillon-quick-form {
+      margin-top: 10px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .ambillon-quick-form input {
+      flex: 1;
+      min-width: 0;
+      border: 1px solid #d5dce7;
+      border-radius: 6px;
+      padding: 9px 10px;
+      font-size: 14px;
+      color: #2c4164;
+      background: #f8fafc;
+    }
+
+    .ambillon-quick-form button {
+      width: auto;
+      border: none;
+      border-radius: 6px;
+      background: #2f4f7e;
+      color: #fff;
+      padding: 9px 12px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      margin: 0;
+    }
+
+    .ambillon-quick-form button:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+    }
+
+    .quick-ambillon-message {
+      min-height: 18px;
+      margin-top: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #5d6d85;
+    }
+
+    .quick-ambillon-message.error {
+      color: #c93a2c;
+    }
+
+    .quick-ambillon-message.success {
+      color: #1f8f60;
+    }
+
+    .stat {
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(24, 42, 68, 0.08);
+      border: 1px solid #e0e5ed;
+      background: #fff;
+    }
+
+    .stat-header {
+      color: #fff;
+      font-size: 15px;
+      font-weight: 700;
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .stat.blue .stat-header {
+      background: linear-gradient(90deg, #2a4a76, #315983);
+    }
+
+    .stat.orange .stat-header {
+      background: linear-gradient(90deg, #e59a18, #f1a723);
+    }
+
+    .stat.navy .stat-header {
+      background: linear-gradient(90deg, #2d4f79, #365f8f);
+    }
+
+    .stat.green .stat-header {
+      background: linear-gradient(90deg, #2f8d84, #44a295);
+    }
+
+    .stat-body {
+      padding: 12px;
+    }
+
+    .stat-number {
+      font-size: 40px;
+      font-weight: 800;
+      color: #1e3253;
+      line-height: 1.05;
+    }
+
+    .stat-number.alert {
+      color: #c93a2c;
+    }
+
+    .stat-sub {
+      margin-top: 6px;
+      font-size: 14px;
+      color: #5d6d85;
+    }
+
+    .bottom-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .panel {
+      background: #fff;
+      border: 1px solid #dfe4ec;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(24, 42, 68, 0.07);
+      padding: 14px;
+      min-height: 390px;
+    }
+
+    .panel-title {
+      margin: 0 0 10px;
+      font-size: 30px;
+      color: #253c61;
+      border-bottom: 2px solid #e4e9f1;
+      padding-bottom: 8px;
+    }
+
+    .order-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 14px 10px;
+      border-bottom: 1px solid #e5e9f0;
+      font-size: 22px;
+    }
+
+    .order-row:last-child {
+      border-bottom: none;
+    }
+
+    .order-main {
+      font-weight: 800;
+      color: #22395c;
+      margin-bottom: 4px;
+    }
+
+    .order-client {
+      color: #536581;
+      margin-bottom: 4px;
+      font-size: 16px;
+    }
+
+    .order-price {
+      font-weight: 800;
+      color: #243a61;
+      font-size: 17px;
+    }
+
+    .badge {
+      min-width: 106px;
+      text-align: center;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      border-radius: 6px;
+      padding: 8px 10px;
+      margin-top: 2px;
+      white-space: nowrap;
+    }
+
+    .badge.pending {
+      background: #3d9a8c;
+    }
+
+    .badge.sent {
+      background: #339578;
+    }
+
+    .badge.progress {
+      background: #f0a11d;
+    }
+
+    .notifications-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 10px;
+    }
+
+    .notification-item {
+      border: 1px solid #e1e6ee;
+      border-left: 4px solid #f2a11a;
+      border-radius: 8px;
+      background: #fff9ef;
+      padding: 10px 12px;
+    }
+
+    .notification-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .notification-name {
+      font-size: 18px;
+      font-weight: 750;
+      color: #1f3254;
+      line-height: 1.25;
+    }
+
+    .notification-badge {
+      font-size: 12px;
+      font-weight: 800;
+      color: #a85e06;
+      background: #ffe3bd;
+      border: 1px solid #ffd094;
+      border-radius: 999px;
+      padding: 3px 8px;
+      white-space: nowrap;
+    }
+
+    .notification-meta {
+      margin-top: 6px;
+      font-size: 14px;
+      color: #4f617d;
+    }
+
+    .notification-empty {
+      border: 1px dashed #cbd3df;
+      border-radius: 8px;
+      background: #f8fafd;
+      color: #4f617d;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 12px;
+    }
+
+    @media (max-width: 1024px) {
+      .topbar {
+        padding: 10px 14px;
+      }
+
+      .topnav {
+        font-size: 14px;
+        gap: 12px;
+      }
+
+      .content {
+        padding: 16px;
+      }
+
+      .card-grid,
+      .stats-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .bottom-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .topbar {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .topnav {
+        width: 100%;
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        padding-bottom: 4px;
+      }
+
+      .top-actions {
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      .menu-toggle {
+        flex-shrink: 0;
+      }
+
+      .sidebar {
+        top: auto;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        height: auto;
+        max-height: 70vh;
+        border-left: none;
+        border-top: 1px solid var(--line);
+        border-top-left-radius: 14px;
+        border-top-right-radius: 14px;
+        box-shadow: 0 -12px 28px rgba(15, 37, 72, 0.22);
+        transform: translateY(100%);
+      }
+
+      .menu-open .sidebar {
+        transform: translateY(0);
+      }
+
+      .brand-a {
+        font-size: 30px;
+      }
+
+      .brand-name {
+        font-size: 26px;
+      }
+
+      .card-grid,
+      .stats-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .card {
+        padding: 12px;
+        min-height: 136px;
+      }
+
+      .card .icon {
+        font-size: 32px;
+      }
+
+      .card h3 {
+        font-size: 18px;
+      }
+
+      .card p {
+        font-size: 13px;
+      }
+
+      .panel-title {
+        font-size: 22px;
+      }
+
+      .order-row {
+        font-size: 14px;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .content {
+        padding: 12px;
+      }
+
+      .card,
+      .panel {
+        padding: 10px;
+      }
+
+      .card-grid,
+      .stats-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .card {
+        min-height: 122px;
+      }
+
+      .card .icon {
+        font-size: 26px;
+        margin-bottom: 6px;
+      }
+
+      .card h3 {
+        font-size: 15px;
+        margin: 6px 0 4px;
+      }
+
+      .card p {
+        font-size: 12px;
+        padding-top: 6px;
+      }
+
+      .stat-number {
+        font-size: 34px;
+      }
+
+      .notification-head {
+        flex-direction: column;
+      }
+
+      .notification-badge {
+        align-self: flex-start;
+      }
+
+      .badge {
+        min-width: 90px;
+        font-size: 13px;
+      }
+
+      .ambillon-quick-form {
+        flex-direction: column;
+      }
+
+      .ambillon-quick-form button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-a">A</span>
+      <span class="brand-name">BLAN</span>
+    </div>
+    <div class="top-actions">
+      <button id="logoutBtn" class="logout-btn" type="button">Deconnexion</button>
+      <button id="menuToggle" class="menu-toggle" type="button" aria-expanded="false" aria-controls="mainMenu">☰ Menu</button>
+    </div>
+  </header>
+
+  <div id="menuOverlay" class="menu-overlay"></div>
+
+  <main class="page">
+    <section class="content">
+      <section class="card-grid">
+        <a class="card card-link" href="gerer-stock.html">
+          <div class="icon">📦</div>
+          <h3>Gérer le Stock</h3>
+          <p>Ajoutez et gérez vos produits.</p>
+        </a>
+        <article class="card">
+          <div class="icon">📑</div>
+          <h3>Créer une Facture</h3>
+          <p>Émettre vos factures facilement.</p>
+          <form id="quickInvoiceForm" class="ambillon-quick-form" novalidate>
+            <input id="quickInvoiceBon" type="text" placeholder="Numero du bon" />
+            <button id="openInvoiceByBonBtn" type="submit">Facturer</button>
+          </form>
+          <p id="quickInvoiceMessage" class="quick-ambillon-message"></p>
+        </article>
+        <a class="card card-link" href="messages-ambillon.html">
+          <div class="icon">💬</div>
+          <h3>Bon de commande (BC)</h3>
+          <p>Accedez aux bons de commande.</p>
+        </a>
+        <article class="card">
+          <div class="icon">🛍️</div>
+          <h3>Commande de l'ambillon</h3>
+          <p>Entrer l'ID ambillon pour ouvrir la page bon.</p>
+          <form id="quickAmbillonForm" class="ambillon-quick-form" novalidate>
+            <input id="quickAmbillonId" type="text" placeholder="ID ambillon" />
+            <button id="openBonByAmbillonBtn" type="submit">Ouvrir</button>
+          </form>
+          <p id="quickAmbillonMessage" class="quick-ambillon-message"></p>
+        </article>
+      </section>
+
+      <section class="stats-grid">
+        <article class="stat blue">
+          <div class="stat-header">💼 Produits en Stock</div>
+          <div class="stat-body">
+            <div id="stockCountValue" class="stat-number">0</div>
+            <div class="stat-sub">Articles disponibles</div>
+          </div>
+        </article>
+        <article class="stat orange">
+          <div class="stat-header">⏺ Bons en Attente</div>
+          <div class="stat-body">
+            <div id="pendingOrdersValue" class="stat-number alert">0</div>
+            <div class="stat-sub">Commandes en cours</div>
+          </div>
+        </article>
+        <article class="stat navy">
+          <div class="stat-header">📄 Factures Émises</div>
+          <div class="stat-body">
+            <div class="stat-number">0</div>
+            <div class="stat-sub">Factures envoyées</div>
+          </div>
+        </article>
+        <article class="stat green">
+          <div class="stat-header">💲 Revenus du Mois</div>
+          <div class="stat-body">
+            <div class="stat-number">0</div>
+            <div class="stat-sub">Gains ce mois-ci</div>
+          </div>
+        </article>
+      </section>
+
+      <section class="bottom-grid">
+        <article class="panel">
+          <h2 class="panel-title">Commandes Récentes</h2>
+        </article>
+
+        <article class="panel">
+          <h2 class="panel-title">Notifications</h2>
+          <ul id="notificationsList" class="notifications-list">
+            <li class="notification-empty">Chargement des notifications...</li>
+          </ul>
+        </article>
+      </section>
+    </section>
+
+    <aside id="mainMenu" class="sidebar" aria-hidden="true">
+      <a class="side-item active" href="#">💼 Tableau de Bord</a>
+      <a class="side-item" href="gerer-stock.html">🛒 Gérer les Produits</a>
+      <a class="side-item" href="#">🛍️ Mes Commandes</a>
+      <a class="side-item" href="#">📄 Mes Factures</a>
+      <a class="side-item" href="messages-ambillon.html">✉️ Bon de commande (BC)</a>
+      <a class="side-item" href="#">👤 Mon Compte</a>
+      <a class="side-item" href="#">🧰 Support</a>
+    </aside>
+  </main>
+
+  <script defer src="https://www.gstatic.com/firebasejs/12.9.0/firebase-app-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/12.9.0/firebase-auth-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore-compat.js"></script>
+  <script defer src="auth-guard.js"></script>
+  <script defer>
+    const FIREBASE_CONFIG = {
+      projectId: "stock-39779",
+      appId: "1:158388559832:web:b602cacd8029b589c51cad",
+      storageBucket: "stock-39779.firebasestorage.app",
+      apiKey: "AIzaSyDZanRdCzy76lJpXHvAML64QGHjlGV41Lk",
+      authDomain: "stock-39779.firebaseapp.com",
+      messagingSenderId: "158388559832",
+      measurementId: "G-DJY60E2N7R"
+    };
+    const PRODUCTS_COLLECTION = "produits";
+    const ORDERS_COLLECTION = "bons_commande";
+    const AMBILLONS_COLLECTION = "ambillons";
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      if (!window.AuthGuard) {
+        window.location.replace("auth.html");
+        return;
+      }
+
+      const isAuthenticated = await window.AuthGuard.ensureAuthenticatedUser();
+      if (!isAuthenticated) {
+        return;
+      }
+
+      let currentUserUid = "";
+      if (window.firebase && firebase.auth && firebase.auth().currentUser) {
+        currentUserUid = String(firebase.auth().currentUser.uid || "");
+      }
+
+      const toggleButton = document.getElementById("menuToggle");
+      const logoutBtn = document.getElementById("logoutBtn");
+      const menu = document.getElementById("mainMenu");
+      const overlay = document.getElementById("menuOverlay");
+      const sideLinks = menu.querySelectorAll(".side-item");
+      const stockCountValue = document.getElementById("stockCountValue");
+      const pendingOrdersValue = document.getElementById("pendingOrdersValue");
+      const notificationsList = document.getElementById("notificationsList");
+      const quickAmbillonForm = document.getElementById("quickAmbillonForm");
+      const quickAmbillonId = document.getElementById("quickAmbillonId");
+      const openBonByAmbillonBtn = document.getElementById("openBonByAmbillonBtn");
+      const quickAmbillonMessage = document.getElementById("quickAmbillonMessage");
+      const quickInvoiceForm = document.getElementById("quickInvoiceForm");
+      const quickInvoiceBon = document.getElementById("quickInvoiceBon");
+      const quickInvoiceMessage = document.getElementById("quickInvoiceMessage");
+
+      loadStockCount(stockCountValue, currentUserUid);
+      loadPendingOrdersCount(pendingOrdersValue, currentUserUid);
+      loadLowStockNotifications(notificationsList, currentUserUid);
+
+      if (quickAmbillonForm) {
+        quickAmbillonForm.addEventListener("submit", async (event) => {
+          event.preventDefault();
+          const inputId = normalizeAmbillonId(quickAmbillonId ? quickAmbillonId.value : "");
+          if (!inputId) {
+            setQuickAmbillonMessage(quickAmbillonMessage, "Saisis un ID ambillon valide.", "error");
+            return;
+          }
+          if (!currentUserUid) {
+            setQuickAmbillonMessage(quickAmbillonMessage, "Session utilisateur introuvable.", "error");
+            return;
+          }
+
+          if (openBonByAmbillonBtn) {
+            openBonByAmbillonBtn.disabled = true;
+            openBonByAmbillonBtn.textContent = "Verification...";
+          }
+          try {
+            if (!firebase.apps || firebase.apps.length === 0) {
+              firebase.initializeApp(FIREBASE_CONFIG);
+            }
+            if (!firebase.firestore) {
+              throw new Error("firestore-unavailable");
+            }
+            const db = firebase.firestore();
+            const doc = await db.collection(AMBILLONS_COLLECTION).doc(inputId).get();
+            if (!doc.exists) {
+              setQuickAmbillonMessage(quickAmbillonMessage, "ID ambillon introuvable.", "error");
+              return;
+            }
+
+            const data = doc.data() || {};
+            const ownerUid = String(data.ownerUid || "");
+            if (ownerUid !== currentUserUid) {
+              setQuickAmbillonMessage(quickAmbillonMessage, "Cet ID n'appartient pas a votre compte.", "error");
+              return;
+            }
+
+            try {
+              sessionStorage.setItem("ambillon_session", JSON.stringify({
+                id: inputId,
+                nom: String(data.nom || ""),
+                ownerUid: ownerUid,
+                at: Date.now()
+              }));
+            } catch (error) {
+              setQuickAmbillonMessage(quickAmbillonMessage, "Impossible d'ouvrir la session ambillon.", "error");
+              return;
+            }
+
+            setQuickAmbillonMessage(quickAmbillonMessage, "Acces autorise. Redirection...", "success");
+            setTimeout(() => {
+              window.location.replace("bon.html");
+            }, 220);
+          } catch (error) {
+            setQuickAmbillonMessage(quickAmbillonMessage, "Verification impossible. Reessaie.", "error");
+          } finally {
+            if (openBonByAmbillonBtn) {
+              openBonByAmbillonBtn.disabled = false;
+              openBonByAmbillonBtn.textContent = "Ouvrir";
+            }
+          }
+        });
+      }
+
+      if (quickInvoiceForm) {
+        quickInvoiceForm.addEventListener("submit", (event) => {
+          event.preventDefault();
+          const rawBon = quickInvoiceBon ? quickInvoiceBon.value : "";
+          const bonValue = String(rawBon || "").trim();
+          const bonKey = normalizeBonKeyForInvoice(bonValue);
+          if (!bonKey) {
+            setQuickInvoiceMessage(quickInvoiceMessage, "Saisis un numero de bon valide.", "error");
+            return;
+          }
+
+          setQuickInvoiceMessage(quickInvoiceMessage, "Redirection vers la facture...", "success");
+          const target = "creer-facture.html?bon=" + encodeURIComponent(bonValue);
+          window.location.replace(target);
+        });
+      }
+
+      function setMenuState(open) {
+        document.body.classList.toggle("menu-open", open);
+        toggleButton.setAttribute("aria-expanded", open ? "true" : "false");
+        menu.setAttribute("aria-hidden", open ? "false" : "true");
+      }
+
+      toggleButton.addEventListener("click", () => {
+        const isOpen = document.body.classList.contains("menu-open");
+        setMenuState(!isOpen);
+      });
+
+      overlay.addEventListener("click", () => setMenuState(false));
+      sideLinks.forEach((link) => link.addEventListener("click", () => setMenuState(false)));
+      logoutBtn.addEventListener("click", async () => {
+        logoutBtn.disabled = true;
+        await window.AuthGuard.signOutUser();
+      });
+
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+          setMenuState(false);
+        }
+      });
+    });
+
+    async function loadStockCount(stockCountElement, userUid) {
+      if (!stockCountElement || !window.firebase || !userUid) {
+        if (stockCountElement) {
+          stockCountElement.textContent = "0";
+        }
+        return;
+      }
+
+      try {
+        if (!firebase.apps || firebase.apps.length === 0) {
+          firebase.initializeApp(FIREBASE_CONFIG);
+        }
+        if (!firebase.firestore) {
+          return;
+        }
+
+        const db = firebase.firestore();
+        const userProductsSnapshot = await db.collection(PRODUCTS_COLLECTION)
+          .where("ownerUid", "==", userUid)
+          .get();
+
+        const count = userProductsSnapshot.docs.reduce((total, doc) => {
+          const qty = Number(doc.data().quantiteParPackets);
+          return Number.isFinite(qty) && qty > 0 ? total + 1 : total;
+        }, 0);
+
+        stockCountElement.textContent = String(count);
+      } catch (error) {
+        stockCountElement.textContent = "0";
+      }
+    }
+
+    async function loadLowStockNotifications(listElement, userUid) {
+      if (!listElement || !window.firebase || !userUid) {
+        if (listElement) {
+          listElement.innerHTML = "<li class='notification-empty'>Aucune notification disponible.</li>";
+        }
+        return;
+      }
+
+      try {
+        if (!firebase.apps || firebase.apps.length === 0) {
+          firebase.initializeApp(FIREBASE_CONFIG);
+        }
+        if (!firebase.firestore) {
+          return;
+        }
+
+        const db = firebase.firestore();
+        const productsSnapshot = await db.collection(PRODUCTS_COLLECTION)
+          .where("ownerUid", "==", userUid)
+          .get();
+
+        const lowStockProducts = productsSnapshot.docs
+          .map((doc) => {
+            const data = doc.data();
+            const name = String(data && data.nom ? data.nom : "Produit");
+            const qty = Number(data && data.quantiteParPackets ? data.quantiteParPackets : 0);
+            const stockMinRaw = data && data.stockMin;
+            const stockMin = stockMinRaw === null || stockMinRaw === undefined || stockMinRaw === ""
+              ? NaN
+              : Number(stockMinRaw);
+            return {
+              name: name,
+              qty: qty,
+              stockMin: stockMin
+            };
+          })
+          .filter((item) => Number.isFinite(item.qty) && Number.isFinite(item.stockMin) && item.qty <= item.stockMin)
+          .sort((a, b) => {
+            const severityA = a.qty - a.stockMin;
+            const severityB = b.qty - b.stockMin;
+            if (severityA !== severityB) {
+              return severityA - severityB;
+            }
+            return a.name.localeCompare(b.name, "fr", { sensitivity: "base" });
+          });
+
+        if (lowStockProducts.length === 0) {
+          listElement.innerHTML = "<li class='notification-empty'>Aucun produit en alerte de stock.</li>";
+          return;
+        }
+
+        listElement.innerHTML = lowStockProducts.map((item) => {
+          return "<li class='notification-item'>" +
+            "<div class='notification-head'>" +
+              "<div class='notification-name'>" + escapeHtml(item.name) + "</div>" +
+              "<span class='notification-badge'>Seuil atteint</span>" +
+            "</div>" +
+            "<div class='notification-meta'>Quantite: <strong>" + escapeHtml(String(item.qty)) + "</strong> | Stock min: <strong>" + escapeHtml(String(item.stockMin)) + "</strong></div>" +
+          "</li>";
+        }).join("");
+      } catch (error) {
+        listElement.innerHTML = "<li class='notification-empty'>Impossible de charger les notifications de stock.</li>";
+      }
+    }
+
+    async function loadPendingOrdersCount(pendingCountElement, userUid) {
+      if (!pendingCountElement || !window.firebase || !userUid) {
+        if (pendingCountElement) {
+          pendingCountElement.textContent = "0";
+        }
+        return;
+      }
+
+      try {
+        if (!firebase.apps || firebase.apps.length === 0) {
+          firebase.initializeApp(FIREBASE_CONFIG);
+        }
+        if (!firebase.firestore) {
+          return;
+        }
+
+        const db = firebase.firestore();
+        const ordersSnapshot = await db.collection(ORDERS_COLLECTION)
+          .where("ownerUid", "==", userUid)
+          .get();
+
+        const pendingCount = ordersSnapshot.docs.reduce((total, doc) => {
+          const data = doc.data();
+          const statusValue = String(data && data.status ? data.status : "").trim().toLowerCase();
+          const isConfirmedStatus = statusValue === "confirme" || statusValue === "confirmé" || statusValue === "confirmÃ©";
+          const hasConfirmedAt = Boolean(data && data.confirmedAt &&
+            (typeof data.confirmedAt.toMillis === "function" || typeof data.confirmedAt.seconds === "number"));
+
+          return isConfirmedStatus || hasConfirmedAt ? total : total + 1;
+        }, 0);
+
+        pendingCountElement.textContent = String(pendingCount);
+      } catch (error) {
+        pendingCountElement.textContent = "0";
+      }
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function normalizeAmbillonId(value) {
+      return String(value || "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toUpperCase()
+        .trim()
+        .replace(/\s+/g, "-")
+        .replace(/[^A-Z0-9_-]/g, "");
+    }
+
+    function setQuickAmbillonMessage(element, text, type) {
+      if (!element) {
+        return;
+      }
+      element.textContent = text || "";
+      element.className = "quick-ambillon-message" + (type ? " " + type : "");
+    }
+
+    function setQuickInvoiceMessage(element, text, type) {
+      if (!element) {
+        return;
+      }
+      element.textContent = text || "";
+      element.className = "quick-ambillon-message" + (type ? " " + type : "");
+    }
+
+    function normalizeBonKeyForInvoice(value) {
+      return String(value || "")
+        .toUpperCase()
+        .replace(/[^A-Z0-9]/g, "")
+        .trim();
+    }
+  </script>
+</body>
+</html>

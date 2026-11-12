@@ -1,0 +1,379 @@
+﻿<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Creer une Facture</title>
+  <style>
+    :root { --bg:#eef1f5; --card:#fff; --line:#d8dee8; --text:#24344f; --muted:#66728a; --blue:#2f65bb; --blue2:#1f4f9f; --green:#1b945f; --green2:#168252; --danger:#c03b3b; --ok:#1f8f60; }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:"Segoe UI",Tahoma,Geneva,Verdana,sans-serif; background:var(--bg); color:var(--text); padding:12px; }
+    .page { max-width:1040px; margin:0 auto; background:var(--card); border:1px solid var(--line); border-radius:10px; overflow:hidden; box-shadow:0 12px 26px rgba(26,38,58,.12); }
+    .head { background:linear-gradient(90deg,#1d58b2,#2766be); color:#fff; padding:14px; }
+    .head h1 { margin:0 0 4px; font-size:1.45rem; }
+    .head p { margin:0; font-size:.92rem; color:#e8eef9; font-weight:600; }
+    .body { padding:14px; }
+    .row { display:grid; grid-template-columns:minmax(0,1fr) auto auto; gap:8px; }
+    .inp { width:100%; min-height:42px; border:2px solid #d5dae3; border-radius:7px; padding:0 12px; font-size:.97rem; }
+    .inp:focus { outline:none; border-color:#7f96be; box-shadow:0 0 0 3px rgba(47,101,187,.13); }
+    .btn { border:none; border-radius:7px; min-height:42px; padding:0 12px; color:#fff; font-weight:700; cursor:pointer; }
+    .btn.load { background:linear-gradient(90deg,var(--blue),var(--blue2)); }
+    .btn.export { background:linear-gradient(90deg,var(--green),var(--green2)); }
+    .btn.back { background:linear-gradient(90deg,#6d7788,#5a6272); }
+    .btn:disabled { opacity:.55; cursor:not-allowed; }
+    .msg { min-height:18px; margin:8px 0 0; font-size:.88rem; font-weight:700; color:var(--muted); }
+    .msg.error { color:var(--danger); } .msg.success { color:var(--ok); }
+    .hidden { display:none; }
+    .grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin-top:10px; }
+    .box { border:1px solid var(--line); border-radius:8px; background:#f8fbff; padding:10px; }
+    .box h3 { margin:0 0 6px; font-size:.94rem; color:#2f4667; }
+    .line { margin:0; font-size:.88rem; line-height:1.35; color:#3d4d66; }
+    .line + .line { margin-top:4px; }
+    .table-wrap { border:1px solid var(--line); border-radius:8px; overflow:auto; background:#fff; margin-top:10px; }
+    table { width:100%; border-collapse:collapse; min-width:720px; }
+    th,td { border:1px solid var(--line); padding:8px 10px; font-size:.88rem; }
+    th { background:#f5f7fa; color:#354055; text-align:left; }
+    th:not(:first-child), td:not(:first-child) { text-align:center; white-space:nowrap; }
+    .totals { margin-top:10px; width:100%; border-collapse:collapse; min-width:0; }
+    .totals th,.totals td { border:1px solid var(--line); padding:8px 10px; font-size:.9rem; }
+    .totals th { width:50%; background:#f5f7fa; text-align:left; } .totals td { text-align:right; font-weight:700; }
+    .grand th,.grand td { background:#eef4ff; color:#1f4f9f; font-weight:800; }
+    .actions { margin-top:10px; display:flex; justify-content:flex-end; gap:8px; flex-wrap:wrap; }
+    @media (max-width:860px) { .grid { grid-template-columns:1fr; } }
+    @media (max-width:640px) { .row { grid-template-columns:1fr; } .actions .btn,.row .btn { width:100%; } }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="head">
+      <h1>Creer une Facture</h1>
+      <p>Saisis le numero du bon pour creer la facture et exporter le PDF.</p>
+    </header>
+    <section class="body">
+      <div class="row">
+        <input id="bonInput" class="inp" type="text" placeholder="Numero du bon (ex: BC-000001)" />
+        <button id="createBtn" class="btn load" type="button">Creer facture</button>
+        <button id="backTopBtn" class="btn back" type="button">Retour</button>
+      </div>
+      <p id="feedback" class="msg"></p>
+
+      <section id="invoiceSection" class="hidden">
+        <div class="grid">
+          <article class="box">
+            <h3>Facture</h3>
+            <p class="line"><strong>Code:</strong> <span id="invoiceCode">-</span></p>
+            <p class="line"><strong>Date:</strong> <span id="invoiceDate">-</span></p>
+          </article>
+          <article class="box">
+            <h3>Vendeur</h3>
+            <p class="line"><strong>UID:</strong> <span id="sellerUid">-</span></p>
+            <p class="line"><strong>Email:</strong> <span id="sellerEmail">-</span></p>
+          </article>
+          <article class="box">
+            <h3>Ambillon</h3>
+            <p class="line"><strong>Nom:</strong> <span id="ambillonName">-</span></p>
+            <p class="line"><strong>ID:</strong> <span id="ambillonId">-</span></p>
+          </article>
+        </div>
+
+        <div class="grid" style="grid-template-columns:1fr;">
+          <article class="box">
+            <h3>Information du Bon</h3>
+            <p class="line"><strong>Bon:</strong> <span id="bonCode">-</span></p>
+            <p class="line"><strong>Client:</strong> <span id="bonClient">-</span></p>
+            <p class="line"><strong>Date:</strong> <span id="bonDate">-</span></p>
+            <p class="line"><strong>Statut:</strong> <span id="bonStatus">-</span></p>
+          </article>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Produit</th><th>Qte</th><th>Prix U</th><th>Remise</th><th>TVA</th><th>Total</th></tr>
+            </thead>
+            <tbody id="itemsBody"></tbody>
+          </table>
+        </div>
+
+        <table class="totals">
+          <tbody>
+            <tr><th>Prix total HT</th><td id="totalHt">0 DH</td></tr>
+            <tr><th>Prix avec remise</th><td id="totalRemise">0 DH</td></tr>
+            <tr class="grand"><th>Prix total</th><td id="totalFinal">0 DH</td></tr>
+          </tbody>
+        </table>
+
+        <div class="actions">
+          <button id="backBottomBtn" class="btn back" type="button">Retour</button>
+          <button id="exportBtn" class="btn export" type="button" disabled>Exporter PDF</button>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <script defer src="https://www.gstatic.com/firebasejs/12.9.0/firebase-app-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/12.9.0/firebase-auth-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore-compat.js"></script>
+  <script defer src="auth-guard.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+  <script defer>
+    const FIREBASE_CONFIG = { projectId:"stock-39779", appId:"1:158388559832:web:b602cacd8029b589c51cad", storageBucket:"stock-39779.firebasestorage.app", apiKey:"AIzaSyDZanRdCzy76lJpXHvAML64QGHjlGV41Lk", authDomain:"stock-39779.firebaseapp.com", messagingSenderId:"158388559832", measurementId:"G-DJY60E2N7R" };
+    const ORDERS_COLLECTION = "bons_commande";
+    const INVOICES_COLLECTION = "factures";
+    const INVOICE_COUNTERS_COLLECTION = "factures_compteurs";
+
+    let db = null;
+    let user = null;
+    let currentInvoice = null;
+    let refs = null;
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      refs = {
+        bonInput: document.getElementById("bonInput"),
+        createBtn: document.getElementById("createBtn"),
+        backTopBtn: document.getElementById("backTopBtn"),
+        backBottomBtn: document.getElementById("backBottomBtn"),
+        exportBtn: document.getElementById("exportBtn"),
+        feedback: document.getElementById("feedback"),
+        invoiceSection: document.getElementById("invoiceSection"),
+        invoiceCode: document.getElementById("invoiceCode"),
+        invoiceDate: document.getElementById("invoiceDate"),
+        sellerUid: document.getElementById("sellerUid"),
+        sellerEmail: document.getElementById("sellerEmail"),
+        ambillonName: document.getElementById("ambillonName"),
+        ambillonId: document.getElementById("ambillonId"),
+        bonCode: document.getElementById("bonCode"),
+        bonClient: document.getElementById("bonClient"),
+        bonDate: document.getElementById("bonDate"),
+        bonStatus: document.getElementById("bonStatus"),
+        itemsBody: document.getElementById("itemsBody"),
+        totalHt: document.getElementById("totalHt"),
+        totalRemise: document.getElementById("totalRemise"),
+        totalFinal: document.getElementById("totalFinal")
+      };
+
+      bindEvents();
+      if (!window.AuthGuard) { window.location.replace("auth.html"); return; }
+      const ok = await window.AuthGuard.ensureAuthenticatedUser();
+      if (!ok) { return; }
+      if (!window.firebase) { setFeedback("Firebase introuvable.", "error"); return; }
+      if (!firebase.apps || firebase.apps.length === 0) { firebase.initializeApp(FIREBASE_CONFIG); }
+      if (!firebase.auth || !firebase.firestore) { setFeedback("Services Firebase indisponibles.", "error"); return; }
+      db = firebase.firestore();
+      user = firebase.auth().currentUser;
+      if (!user || !user.uid) { setFeedback("Session utilisateur introuvable.", "error"); return; }
+      if (user && user.isAnonymous) {
+        refs.createBtn.disabled = true;
+        refs.exportBtn.disabled = true;
+        setFeedback("Session ambillon detectee. Redirection vers la connexion vendeur...", "error");
+        setTimeout(() => {
+          const currentPage = (window.location.pathname.split("/").pop() || "creer-facture.html") + window.location.search;
+          window.location.replace("auth.html?redirect=" + encodeURIComponent(currentPage));
+        }, 500);
+        return;
+      }
+    });
+
+    function bindEvents() {
+      refs.createBtn.addEventListener("click", async () => { await createInvoice(); });
+      refs.bonInput.addEventListener("keydown", async (event) => { if (event.key === "Enter") { event.preventDefault(); await createInvoice(); } });
+      refs.exportBtn.addEventListener("click", () => exportPdf());
+      refs.backTopBtn.addEventListener("click", () => window.location.replace("index.html"));
+      refs.backBottomBtn.addEventListener("click", () => window.location.replace("index.html"));
+    }
+
+    async function createInvoice() {
+      if (!db || !user || !user.uid) { setFeedback("Session indisponible.", "error"); return; }
+      const key = normalizeBonKey(refs.bonInput.value);
+      if (!key) { setFeedback("Saisis un numero de bon valide.", "error"); return; }
+
+      refs.createBtn.disabled = true;
+      refs.exportBtn.disabled = true;
+      setFeedback("Recherche du bon...", "");
+      try {
+        const order = await findOrderByBonKey(user.uid, key);
+        if (!order) { refs.invoiceSection.classList.add("hidden"); setFeedback("Bon introuvable pour ce vendeur.", "error"); return; }
+        currentInvoice = await ensureInvoice(order);
+        renderInvoice(currentInvoice);
+        refs.invoiceSection.classList.remove("hidden");
+        refs.exportBtn.disabled = false;
+        setFeedback("Facture " + currentInvoice.invoiceCode + " prete.", "success");
+      } catch (error) {
+        refs.invoiceSection.classList.add("hidden");
+        setFeedback("Impossible de creer la facture: " + getErrorText(error), "error");
+      } finally {
+        refs.createBtn.disabled = false;
+      }
+    }
+
+    async function findOrderByBonKey(ownerUid, bonKey) {
+      const snapshot = await db.collection(ORDERS_COLLECTION).where("ownerUid", "==", ownerUid).get();
+      const list = snapshot.docs.map((doc) => {
+        const data = doc.data() || {};
+        return {
+          docId: String(doc.id || ""),
+          bon: String(data.bon || data.bonId || ""),
+          bonId: String(data.bonId || data.bon || ""),
+          client: String(data.client || "Client non renseigne"),
+          date: String(data.date || "Non renseignee"),
+          dateIso: String(data.dateIso || ""),
+          status: String(data.status || "en_attente"),
+          ambillon: String(data.ambillon || data.ambillonId || "Ambillon"),
+          ambillonId: String(data.ambillonId || ""),
+          items: Array.isArray(data.items) ? data.items : [],
+          createdAtMs: millis(data.createdAt)
+        };
+      }).sort((a, b) => b.createdAtMs - a.createdAtMs);
+      return list.find((x) => normalizeBonKey(x.bon) === bonKey || normalizeBonKey(x.bonId) === bonKey) || null;
+    }
+
+    async function ensureInvoice(order) {
+      const docId = sanitizeKey(user.uid) + "__" + sanitizeKey(order.bon || order.bonId || order.docId);
+      const ref = db.collection(INVOICES_COLLECTION).doc(docId);
+      const snap = await ref.get();
+      if (snap.exists) { return buildInvoiceModel(order, snap.data() || {}); }
+
+      const resolved = resolveItems(order.items);
+      const code = await nextInvoiceCode();
+      const dateIso = todayIso();
+      const payload = {
+        invoiceCode: code,
+        ownerUid: String(user.uid || ""),
+        sellerUid: String(user.uid || ""),
+        sellerEmail: String(user.email || ""),
+        bon: String(order.bon || order.bonId || ""),
+        bonId: String(order.bonId || order.bon || ""),
+        orderDocId: String(order.docId || ""),
+        client: String(order.client || ""),
+        ambillon: String(order.ambillon || ""),
+        ambillonId: String(order.ambillonId || ""),
+        bonDate: String(order.date || ""),
+        bonDateIso: String(order.dateIso || ""),
+        invoiceDate: displayDate(dateIso),
+        invoiceDateIso: dateIso,
+        status: String(order.status || "en_attente"),
+        totalHt: resolved.totalHt,
+        totalWithRemise: resolved.totalWithRemise,
+        total: resolved.total,
+        amount: formatDh(resolved.total) + " DH",
+        items: resolved.items,
+        source: "creer-facture.html",
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      };
+      await ref.set(payload);
+      return buildInvoiceModel(order, payload);
+    }
+
+    function buildInvoiceModel(order, data) {
+      const resolved = resolveItems(Array.isArray(data.items) && data.items.length > 0 ? data.items : order.items);
+      const iso = String(data.invoiceDateIso || todayIso());
+      return {
+        invoiceCode: String(data.invoiceCode || ""),
+        invoiceDate: String(data.invoiceDate || displayDate(iso)),
+        sellerUid: String(data.sellerUid || user.uid || ""),
+        sellerEmail: String(data.sellerEmail || user.email || ""),
+        ambillon: String(order.ambillon || "Ambillon"),
+        ambillonId: String(order.ambillonId || ""),
+        bon: String(order.bon || order.bonId || ""),
+        client: String(order.client || "Client non renseigne"),
+        bonDate: String(order.date || "Non renseignee"),
+        bonStatus: statusLabel(order.status),
+        items: resolved.items,
+        totalHt: resolved.totalHt,
+        totalWithRemise: resolved.totalWithRemise,
+        total: resolved.total
+      };
+    }
+
+    function resolveItems(raw) {
+      const items = (Array.isArray(raw) ? raw : []).map((it) => {
+        const prix = Number(it && it.prix !== undefined ? it.prix : (it && it.price !== undefined ? it.price : 0));
+        const remise = Math.max(0, Math.min(100, Number(it && it.remise !== undefined ? it.remise : 0)));
+        const tva = Math.max(0, Number(it && it.tva !== undefined ? it.tva : 0));
+        const qty = Math.max(0, Number(it && it.qty !== undefined ? it.qty : 0));
+        const ht = Number.isFinite(Number(it && it.totalHt)) ? Number(it.totalHt) : prix * qty;
+        const wr = Number.isFinite(Number(it && it.totalWithRemise)) ? Number(it.totalWithRemise) : ht * (1 - (remise / 100));
+        const tt = Number.isFinite(Number(it && it.total)) ? Number(it.total) : wr * (1 + (tva / 100));
+        return { productId:String(it && it.productId ? it.productId : ""), name:String(it && it.name ? it.name : "Produit"), prix:isFinite(prix)?prix:0, remise:isFinite(remise)?remise:0, tva:isFinite(tva)?tva:0, qty:isFinite(qty)?qty:0, totalHt:isFinite(ht)?ht:0, totalWithRemise:isFinite(wr)?wr:0, total:isFinite(tt)?tt:0 };
+      });
+      return {
+        items: items,
+        totalHt: items.reduce((s, x) => s + (Number(x.totalHt) || 0), 0),
+        totalWithRemise: items.reduce((s, x) => s + (Number(x.totalWithRemise) || 0), 0),
+        total: items.reduce((s, x) => s + (Number(x.total) || 0), 0)
+      };
+    }
+
+    async function nextInvoiceCode() {
+      const ref = db.collection(INVOICE_COUNTERS_COLLECTION).doc("global");
+      return db.runTransaction(async (t) => {
+        const snap = await t.get(ref);
+        let n = snap.exists ? Number(snap.data().lastNumber || 0) : 0;
+        if (!Number.isFinite(n) || n < 0) { n = 0; }
+        n += 1;
+        if (n > 999999) { throw new Error("Limite des factures atteinte (999999)"); }
+        t.set(ref, { lastNumber:n, updatedAt:firebase.firestore.FieldValue.serverTimestamp() }, { merge:true });
+        return "FAC-" + String(n).padStart(6, "0");
+      });
+    }
+
+    function renderInvoice(inv) {
+      refs.invoiceCode.textContent = inv.invoiceCode || "-";
+      refs.invoiceDate.textContent = inv.invoiceDate || "-";
+      refs.sellerUid.textContent = inv.sellerUid || "-";
+      refs.sellerEmail.textContent = inv.sellerEmail || "Non renseigne";
+      refs.ambillonName.textContent = inv.ambillon || "-";
+      refs.ambillonId.textContent = inv.ambillonId || "-";
+      refs.bonCode.textContent = inv.bon || "-";
+      refs.bonClient.textContent = inv.client || "-";
+      refs.bonDate.textContent = inv.bonDate || "-";
+      refs.bonStatus.textContent = inv.bonStatus || "-";
+      refs.itemsBody.innerHTML = inv.items.map((x) => "<tr><td>" + esc(x.name) + "</td><td>" + esc(String(x.qty)) + "</td><td>" + esc(formatDh(x.prix)) + " DH</td><td>" + esc(formatPct(x.remise)) + "%</td><td>" + esc(formatPct(x.tva)) + "%</td><td>" + esc(formatDh(x.total)) + " DH</td></tr>").join("") || "<tr><td colspan='6'>Aucune ligne.</td></tr>";
+      refs.totalHt.textContent = formatDh(inv.totalHt) + " DH";
+      refs.totalRemise.textContent = formatDh(inv.totalWithRemise) + " DH";
+      refs.totalFinal.textContent = formatDh(inv.total) + " DH";
+    }
+
+    function exportPdf() {
+      if (!currentInvoice) { setFeedback("Aucune facture a exporter.", "error"); return; }
+      if (!window.jspdf || !window.jspdf.jsPDF) { setFeedback("Export PDF indisponible.", "error"); return; }
+      const doc = new window.jspdf.jsPDF({ orientation:"portrait", unit:"pt", format:"a4" });
+      const left = 36; let y = 40;
+      doc.setFont("helvetica", "bold"); doc.setFontSize(17); doc.text("Facture " + String(currentInvoice.invoiceCode || ""), left, y); y += 22;
+      doc.setFont("helvetica", "normal"); doc.setFontSize(11);
+      doc.text("Date facture: " + String(currentInvoice.invoiceDate || ""), left, y); y += 15;
+      doc.text("Bon: " + String(currentInvoice.bon || ""), left, y); y += 15;
+      doc.text("Client: " + String(currentInvoice.client || ""), left, y); y += 15;
+      doc.text("Vendeur: " + String(currentInvoice.sellerEmail || currentInvoice.sellerUid || ""), left, y); y += 15;
+      doc.text("Ambillon: " + String(currentInvoice.ambillon || "") + " (" + String(currentInvoice.ambillonId || "") + ")", left, y); y += 20;
+      const rows = currentInvoice.items.map((x) => [String(x.name || ""), String(x.qty || 0), formatDh(x.prix), formatPct(x.remise) + "%", formatPct(x.tva) + "%", formatDh(x.total)]);
+      if (typeof doc.autoTable === "function") {
+        doc.autoTable({ startY:y, margin:{left:24,right:24}, head:[["Produit","Qte","Prix U (DH)","Remise","TVA","Total (DH)"]], body:rows.length ? rows : [["Aucune ligne","-","-","-","-","-"]], styles:{fontSize:9,cellPadding:4,overflow:"linebreak"}, headStyles:{fillColor:[47,79,126]}, theme:"grid" });
+        y = doc.lastAutoTable ? (doc.lastAutoTable.finalY + 16) : (y + 140);
+      }
+      doc.setFont("helvetica", "bold"); doc.setFontSize(11);
+      doc.text("Total HT: " + formatDh(currentInvoice.totalHt) + " DH", left, y); y += 14;
+      doc.text("Total avec remise: " + formatDh(currentInvoice.totalWithRemise) + " DH", left, y); y += 14;
+      doc.text("Total facture: " + formatDh(currentInvoice.total) + " DH", left, y);
+      doc.save(slugify(currentInvoice.invoiceCode || "facture") + ".pdf");
+      setFeedback("Facture exportee en PDF.", "success");
+    }
+
+    function setFeedback(text, type) { refs.feedback.textContent = text || ""; refs.feedback.className = "msg" + (type ? " " + type : ""); }
+    function getErrorText(err) { const c = err && err.code ? String(err.code) : ""; const m = err && err.message ? String(err.message) : ""; if (c === "permission-denied") { return "permission-denied (deploie firestore.rules et connecte-toi en compte vendeur non anonyme)"; } return c || m || "erreur inconnue"; }
+    function normalizeBonKey(v) { return String(v || "").toUpperCase().replace(/[^A-Z0-9]/g, "").trim(); }
+    function statusLabel(v) { const x = String(v || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase(); return x === "confirme" ? "Confirme" : "En attente"; }
+    function millis(d) { if (d && typeof d.toMillis === "function") { return d.toMillis(); } if (d && typeof d.seconds === "number") { return Number(d.seconds) * 1000; } return 0; }
+    function todayIso() { const n = new Date(); return n.getFullYear() + "-" + String(n.getMonth() + 1).padStart(2, "0") + "-" + String(n.getDate()).padStart(2, "0"); }
+    function displayDate(v) { const p = String(v || "").split("-"); return p.length === 3 ? (p[2] + "/" + p[1] + "/" + p[0]) : (v || "Non renseignee"); }
+    function formatDh(v) { const n = Number(v); return Number.isFinite(n) ? n.toLocaleString("fr-FR", { maximumFractionDigits:2 }) : "0"; }
+    function formatPct(v) { const n = Number(v); return Number.isFinite(n) ? n.toLocaleString("fr-FR", { maximumFractionDigits:2 }) : "0"; }
+    function sanitizeKey(v) { return String(v || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9_-]+/g, "-").replace(/^-+|-+$/g, "") || "key"; }
+    function slugify(v) { return String(v || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "facture"; }
+    function esc(v) { return String(v).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\"/g, "&quot;").replace(/'/g, "&#039;"); }
+  </script>
+</body>
+</html>
+
